@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Match Attax">
+<meta name="theme-color" content="#07111f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Match Attax 26/27</title>
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#07111f;
+  --bg2:#0b1830;
+  --panel:rgba(15,28,53,.86);
+  --line:rgba(255,255,255,.12);
+  --text:#eef5ff;
+  --muted:#a4b4cf;
+  --accent:#5df0c2;
+  --accent2:#7d87ff;
+  --gold:#ffd86e;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:
+ radial-gradient(circle at top left, rgba(120,130,255,.18), transparent 34%),
+ radial-gradient(circle at top right, rgba(0,255,220,.11), transparent 30%),
+ linear-gradient(180deg,var(--bg),#081426 45%, #07101d 100%);
+ color:var(--text);
+}
+body{min-height:100vh}
+button,input,select{font:inherit}
+.header{padding:calc(env(safe-area-inset-top) + 22px) 16px 18px;position:relative;overflow:hidden}
+.header::before{content:"";position:absolute;inset:0;background:
+ linear-gradient(135deg, rgba(106,116,255,.17), transparent 45%),
+ linear-gradient(215deg, rgba(93,240,194,.14), transparent 55%);
+ pointer-events:none;}
+.brand{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.eyebrow{font-size:11px;letter-spacing:2.2px;font-weight:800;color:#89ffd9;text-transform:uppercase}
+.logo-chip{flex:none;padding:8px 11px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.03));font-size:11px;font-weight:800;color:#f7dd83;box-shadow:0 10px 22px rgba(0,0,0,.22)}
+h1{position:relative;margin:8px 0 7px;font-size:31px;line-height:1.02;letter-spacing:-.9px}
+.sub{position:relative;color:var(--muted);font-size:13px;max-width:42ch;line-height:1.45}
+.stats{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.stat{background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid var(--line);padding:13px 11px;border-radius:18px;backdrop-filter:blur(12px);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.stat strong{display:block;font-size:24px;line-height:1.05;margin-bottom:4px}
+.stat span{display:block;color:var(--muted);font-size:11px;line-height:1.25}
+.progress-wrap{position:relative;margin-top:16px;padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.progress-top{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar>div{height:100%;width:0%;background:linear-gradient(90deg,#4fd9b1,#7a85ff 55%,#ffd86e);border-radius:999px;transition:width .2s ease}
+.controls{position:sticky;top:0;z-index:10;padding:12px 14px 12px;background:rgba(6,12,23,.88);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.06)}
+.search{width:100%;padding:14px 15px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));color:#fff;outline:0;font-size:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.search::placeholder{color:#8fa2c5}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.filters select{width:100%;min-width:0;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#edf5ff;border-radius:14px;padding:12px 10px;font-size:13px;outline:0}
+.tabs{display:flex;gap:8px;overflow:auto;scrollbar-width:none;margin-top:11px;padding-bottom:2px}
+.tabs button{white-space:nowrap;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#d5e3f8;font-size:12px}
+.tabs button.active{background:linear-gradient(135deg,#5df0c2,#8be7ff);color:#082021;border-color:transparent;font-weight:800}
+.results{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 16px 4px;color:var(--muted);font-size:12px}
+.results .hint{color:#7bd6c8;font-weight:700}
+.grid{padding:10px 12px 114px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{position:relative;min-height:242px;border-radius:23px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:
+ radial-gradient(circle at 18% 10%, rgba(255,255,255,.16), transparent 28%),
+ linear-gradient(150deg, rgba(255,255,255,.1), rgba(255,255,255,.03) 48%, rgba(255,255,255,.08) 100%),
+ var(--cardbg, linear-gradient(145deg,#21385a,#12203a));
+ box-shadow:0 16px 36px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.card::before{content:"";position:absolute;inset:-28% -30% auto auto;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.15), transparent 70%);transform:rotate(18deg)}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, transparent 0%, transparent 45%, rgba(6,13,24,.18) 58%, rgba(6,13,24,.65) 100%);pointer-events:none}
+.card.owned{border-color:rgba(93,240,194,.6);box-shadow:0 16px 36px rgba(0,0,0,.26), 0 0 0 1px rgba(93,240,194,.14), inset 0 1px 0 rgba(255,255,255,.09)}
+.card-head{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:12px 12px 0;z-index:1}
+.badge{padding:5px 8px;border-radius:999px;background:rgba(7,18,34,.52);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);font-size:10px;line-height:1.1;font-weight:800;color:#f6e196;text-transform:uppercase;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.num{font-size:12px;font-weight:900;padding:5px 8px;border-radius:999px;background:rgba(7,18,34,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);color:#c5fced}
+.art{position:relative;z-index:1;margin:8px 12px 0;height:105px;border-radius:18px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.art::before{content:"";position:absolute;inset:auto -18px -32px auto;width:84px;height:84px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.22), transparent 70%)}
+.silhouette{position:absolute;left:10px;bottom:0;width:92px;height:102px;border-radius:28px 28px 6px 6px;background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.55));opacity:.15;filter:blur(.3px);clip-path:polygon(26% 7%, 45% 0%, 61% 8%, 72% 21%, 71% 35%, 80% 57%, 84% 100%, 18% 100%, 22% 62%, 30% 36%, 28% 23%);}
+.initials{position:relative;z-index:1;font-size:38px;font-weight:900;line-height:1;color:rgba(255,255,255,.92);letter-spacing:-2px;text-shadow:0 4px 12px rgba(0,0,0,.28);max-width:68%;overflow:hidden}
+.teammark{position:relative;z-index:1;text-align:right;max-width:42%;font-size:11px;font-weight:800;color:rgba(255,255,255,.88);line-height:1.15;text-shadow:0 2px 6px rgba(0,0,0,.18)}
+.teammark span{display:block;font-size:10px;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:2px}
+.card-body{position:absolute;left:0;right:0;bottom:0;padding:14px 12px 12px;z-index:1}
+.player{font-size:15px;font-weight:850;line-height:1.12;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:33px;text-shadow:0 2px 10px rgba(0,0,0,.28)}
+.meta{font-size:11px;color:#d3dcf1;opacity:.92;line-height:1.3;display:flex;gap:6px;align-items:center;min-height:29px}
+.meta .dot{width:4px;height:4px;border-radius:50%;background:#8ff6d6;flex:none}
+.actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+.toggle{border:0;border-radius:13px;padding:10px 12px;font-size:12px;font-weight:850;flex:1;min-width:0;background:rgba(255,255,255,.11);color:#fff;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
+.card.owned .toggle{background:linear-gradient(135deg,#5df0c2,#a7f6dd);color:#05231d;border-color:transparent}
+.qty{display:flex;align-items:center;gap:5px;padding:4px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.qty button{width:28px;height:28px;border:0;border-radius:9px;background:rgba(6,13,24,.35);color:#fff;font-size:18px;line-height:1}
+.qty output{min-width:20px;text-align:center;font-size:13px;font-weight:800}
+.corner-check{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(5,12,22,.42);border:1px solid rgba(255,255,255,.12);font-weight:900;font-size:16px;z-index:2;color:transparent}
+.card.owned .corner-check{background:linear-gradient(135deg,#5df0c2,#9bf0ff);color:#05221d;border-color:transparent}
+.empty{padding:54px 16px;text-align:center;color:var(--muted)}
+.bottom{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);display:flex;gap:8px;background:rgba(7,12,20,.92);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);z-index:20}
+.bottom button{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 8px;background:rgba(255,255,255,.06);color:#e2edff;font-size:12px;font-weight:800}
+.bottom .primary{background:linear-gradient(135deg,#5df0c2,#8de7ff);color:#071a1f;border-color:transparent}
+dialog{border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#12223d,#0e1a2f);color:#fff;border-radius:22px;width:calc(100% - 32px);max-width:430px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+dialog::backdrop{background:rgba(0,0,0,.58)}
+dialog h2{margin:0 0 12px;font-size:22px}
+dialog p{font-size:13px;line-height:1.58;color:#c5d2ea}
+dialog button{border:0;border-radius:12px;padding:12px 15px;font-weight:800;margin:5px 5px 0 0}
+dialog .ok{background:linear-gradient(135deg,#5df0c2,#8be8ff);color:#082022}
+dialog .secondary{background:#2a3d5c;color:#edf6ff}
+.file{display:none}
+@media (min-width:700px){
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* Edition 3: Sammelalbum-Look in Rot, Violett und Gold */
+:root{--bg:#090616;--bg2:#180b37;--panel:#1e1049;--line:rgba(255,255,255,.19);--accent:#f5cc49;--accent2:#f54467;--muted:#c8bddd}
+html,body{background:linear-gradient(165deg,#250d57 0%,#100829 35%,#0b061a 100%)}
+.header{padding:calc(env(safe-area-inset-top) + 16px) 14px 14px;background:linear-gradient(115deg,#e62546,#9a20a5 47%,#3a1d98 100%);border-bottom:5px solid #ffd74f}
+.header::before{background:repeating-linear-gradient(135deg,transparent 0px,transparent 35px,rgba(255,255,255,.045) 35px,rgba(255,255,255,.045) 36px)}
+.eyebrow{color:#ffe881;font-size:10px;letter-spacing:1.8px}
+.logo-chip{background:#ffdc45;color:#4a1747;border:2px solid #fff;font-weight:950;box-shadow:3px 4px 0 rgba(25,3,49,.4)}
+h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style:italic;text-transform:uppercase;font-weight:950;letter-spacing:-1.1px}
+.sub{font-size:12px;color:#ffe9fb;line-height:1.3}
+.stats{margin-top:12px;gap:7px}
+.stat{padding:9px 10px;border-radius:10px;background:rgba(28,7,64,.4);border:1px solid rgba(255,255,255,.38);box-shadow:none}
+.stat strong{font-size:22px;color:#fff}
+.stat span{color:#f5dced;font-size:10px}
+.progress-wrap{margin-top:10px;padding:8px 10px;border-radius:10px;background:#3c135f99}
+.progress-top{margin-bottom:5px;font-size:11px;color:#fff}
+.bar{height:7px;background:#180d42}
+.bar>div{background:linear-gradient(90deg,#ffd447,#ff6969)}
+.controls{background:rgba(16,7,37,.95);padding:10px 12px}
+.search{background:#fff;color:#251046;border:2px solid #f7c548;padding:12px;border-radius:11px;font-size:15px}
+.search::placeholder{color:#746586}
+.filters{margin-top:8px}
+.filters select{background:#332065;border-color:#6c46a0;border-radius:10px;padding:10px 7px}
+.tabs{margin-top:8px}
+.tabs button{border-radius:9px;border-color:#6945a4;background:#24164c;padding:8px 11px;font-weight:750}
+.tabs button.active{background:#ffcf43;color:#3d1b41;border-color:#fff}
+.results{color:#e9d6fd;padding-top:12px}
+.results .hint{color:#ffdb58}
+.grid{gap:12px;padding-top:9px}
+.card{border:3px solid #cfa2ff;border-radius:14px;min-height:253px;box-shadow:3px 5px 0 #160c37,0 13px 30px #0005;background:linear-gradient(155deg,#ba1e4e,#5922a5 50%,#111858)}
+.card::before{inset:-35% auto auto -40%;background:linear-gradient(45deg,#fff7,transparent);transform:rotate(-15deg);border-radius:0;width:110%;height:60%}
+.card::after{background:linear-gradient(180deg,transparent 0%,transparent 42%,rgba(11,6,33,.4) 56%,#160d35eb 100%)}
+.card.owned{border-color:#ffdc4a;box-shadow:0 0 0 2px #e5b44b66,3px 5px 0 #160c37,0 13px 30px #0005}
+.card-head{padding:8px 8px 0}
+.badge{background:#ffd95a;color:#28104a;border:1px solid #fff;font-size:9px;padding:5px 7px}
+.num{background:#2a1459;color:#fff;border:1px solid #fff8;font-size:11px;padding:5px 7px}
+.art{height:110px;margin:6px 8px 0;border-radius:7px;background:repeating-linear-gradient(150deg,#fff1 0px,#fff1 2px,transparent 2px,transparent 20px),linear-gradient(155deg,#f9415b66,#8e42e6aa 65%,#fff2);border:2px solid #fff5}
+.silhouette{opacity:.35;filter:none;background:#f8edff;width:103px;height:106px;clip-path:polygon(32% 5%,45% 0,58% 5%,66% 18%,66% 34%,80% 42%,96% 80%,89% 100%,7% 100%,0 80%,17% 42%,31% 34%,29% 19%)}
+.initials{font-size:47px;font-style:italic;font-weight:1000;color:#fff;text-shadow:3px 3px 0 #a41556,-2px -2px 0 #49139a}
+.teammark{font-size:10px;color:#fff}
+.card-body{padding:10px 9px 9px}
+.player{font-size:14px;font-weight:950;text-transform:uppercase;text-shadow:2px 2px 0 #481357}
+.meta{color:#ffe6fb;font-size:10px;min-height:26px}
+.meta .dot{background:#ffdf4d}
+.toggle{border-radius:7px;border:1px solid #e8c7ff;background:#4a278a;font-size:11px;padding:9px 5px}
+.card.owned .toggle{background:#ffdc50;color:#30153c;border:1px solid #fff}
+.qty{padding:2px;border-radius:8px;background:#100a30a6}
+.qty button{width:25px;height:28px;border-radius:6px;background:#622e9d}
+.qty output{min-width:15px;font-size:12px}
+.corner-check{display:none}
+.bottom{background:#13082eea;border-top:2px solid #9f54bd}
+.bottom button{background:#3c206d}
+.bottom .primary{background:#ffd54b;color:#30123c}
+@media(max-width:370px){.card{min-height:266px}.player{font-size:13px}.actions{gap:4px}.toggle{padding:8px 3px}}
+.card{display:flex;flex-direction:column;min-height:0}
+.card-body{position:relative;left:auto;right:auto;bottom:auto;margin-top:auto;padding-top:8px}
+.art{height:116px;flex:none}
+.player{min-height:32px;margin-bottom:2px}
+.meta{min-height:22px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand">
+    <div>
+      <div class="eyebrow">Deine Sammlung</div>
+      <h1>Match Attax<br>Champions League <span style="color:#8af6d7">26/27</span></h1>
+      <div class="sub">Kartenalbum · Sammeln · Tauschen</div>
+    </div>
+    <div class="logo-chip">TRACKER</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><strong id="owned">0</strong><span>Verschiedene Karten</span></div>
+    <div class="stat"><strong id="missing">0</strong><span>Fehlen noch</span></div>
+    <div class="stat"><strong id="percent">0 %</strong><span>Komplett</span></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top"><span>Sammlungsfortschritt</span><span id="progressLabel">0 von 0 Karten</span></div>
+    <div class="bar"><div id="progress"></div></div>
+  </div>
+</header>
+<section class="controls">
+  <input id="query" class="search" type="search" placeholder="Spieler, Verein, Kartennummer oder Kartentyp suchen …" aria-label="Karten suchen">
+  <div class="filters">
+    <select id="team"><option value="">Alle Vereine</option></select>
+    <select id="type"><option value="">Alle Kartentypen</option></select>
+  </div>
+  <div class="tabs">
+    <button class="active" data-filter="all">Alle</button>
+    <button data-filter="owned">Vorhanden</button>
+    <button data-filter="missing">Fehlende</button>
+    <button data-filter="duplicates">Doppelte</button>
+  </div>
+</section>
+<div class="results"><span id="resultCount">0 Karten angezeigt</span><span id="statusHint" class="hint">Karten direkt abhaken</span></div>
+<main id="grid" class="grid"></main>
+<div class="bottom">
+  <button id="backup">Sicherung</button>
+  <button id="restore">Importieren</button>
+  <button class="primary" id="help">Info &amp; Hilfe</button>
+</div>
+<input id="file" class="file" type="file" accept=".json,.csv,application/json,text/csv">
+<dialog id="modal">
+  <h2>So funktioniert die Kartenansicht</h2>
+  <p>Jede Karte wird als stilisierte Vorschau angezeigt. Mit <b>Vorhanden</b> hakst du sie ab. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
+  <p>Die App nutzt nur die Daten auf diesem iPhone. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
+  <p>Die Kartenoptik ist <b>von Match Attax inspiriert</b>, nutzt aber keine eingebetteten offiziellen Original-Kartenbilder. Wenn du echte Kartenfotos einbinden willst, kann ich die App später auch dafür vorbereiten.</p>
+  <button id="close" class="ok">Verstanden</button>
+  <button id="reset" class="secondary">Sammlung zurücksetzen</button>
+</dialog>
+<script>
+const cards=[{"id":"1","n":"Luka Modrić","t":"Sonderserie","k":"Infinity"},{"id":"2","n":"Antoine Semenyo","t":"Sonderserie","k":"Infinity"},{"id":"3","n":"Ousmane Dembélé","t":"Sonderserie","k":"Infinity"},{"id":"4","n":"Morgan Rogers","t":"Sonderserie","k":"Infinity"},{"id":"5","n":"Hugo Ekitiké","t":"Sonderserie","k":"Infinity"},{"id":"6","n":"Felix Nmecha","t":"Sonderserie","k":"Infinity"},{"id":"7","n":"Declan Rice","t":"Sonderserie","k":"Infinity"},{"id":"8","n":"Michael Olise","t":"Sonderserie","k":"Infinity"},{"id":"9","n":"Bruno Fernandes","t":"Sonderserie","k":"Infinity"},{"id":"10","n":"David Raya","t":"Arsenal","k":"Basis"},{"id":"11","n":"William Saliba","t":"Arsenal","k":"Basis"},{"id":"12","n":"Gabriel Magalhães","t":"Arsenal","k":"Basis"},{"id":"13","n":"Riccardo Calafiori","t":"Arsenal","k":"Basis"},{"id":"14","n":"Myles Lewis-Skelly","t":"Arsenal","k":"Basis"},{"id":"15","n":"Martín Zubimendi","t":"Arsenal","k":"Basis"},{"id":"16","n":"Martin Ødegaard","t":"Arsenal","k":"Leader"},{"id":"17","n":"Declan Rice","t":"Arsenal","k":"Basis"},{"id":"18","n":"Eberechi Eze","t":"Arsenal","k":"Basis"},{"id":"19","n":"Max Dowman","t":"Arsenal","k":"Attax Debutant"},{"id":"20","n":"Gabriel Martinelli","t":"Arsenal","k":"Basis"},{"id":"21","n":"Viktor Gyökeres","t":"Arsenal","k":"Basis"},{"id":"22","n":"Bukayo Saka","t":"Arsenal","k":"Basis"},{"id":"23","n":"Jurriën Timber","t":"Arsenal","k":"Man of the Match"},{"id":"24","n":"Noni Madueke","t":"Arsenal","k":"Power Play"},{"id":"25","n":"Leandro Trossard","t":"Arsenal","k":"Goaliaths"},{"id":"26","n":"Gabriel Magalhães","t":"Arsenal","k":"Fortress"},{"id":"27","n":"Declan Rice","t":"Arsenal","k":"20th Anniversary"},{"id":"28","n":"Gianluigi Donnarumma","t":"Manchester City","k":"Basis"},{"id":"29","n":"Rúben Dias","t":"Manchester City","k":"Leader"},{"id":"30","n":"Marc Guéhi","t":"Manchester City","k":"Basis"},{"id":"31","n":"Abdukodir Khusanov","t":"Manchester City","k":"Basis"},{"id":"32","n":"Nico O'Reilly","t":"Manchester City","k":"Basis"},{"id":"33","n":"Rodri","t":"Manchester City","k":"Attax Master"},{"id":"34","n":"Tijjani Reijnders","t":"Manchester City","k":"Basis"},{"id":"35","n":"Phil Foden","t":"Manchester City","k":"Basis"},{"id":"36","n":"Rayan Cherki","t":"Manchester City","k":"Basis"},{"id":"37","n":"Antoine Semenyo","t":"Manchester City","k":"Basis"},{"id":"38","n":"Jérémy Doku","t":"Manchester City","k":"Basis"},{"id":"39","n":"Omar Marmoush","t":"Manchester City","k":"Basis"},{"id":"40","n":"Erling Haaland","t":"Manchester City","k":"Basis"},{"id":"41","n":"Savinho","t":"Manchester City","k":"Man of the Match"},{"id":"42","n":"Tijjani Reijnders","t":"Manchester City","k":"Power Play"},{"id":"43","n":"Phil Foden","t":"Manchester City","k":"Goaliaths"},{"id":"44","n":"Joško Gvardiol","t":"Manchester City","k":"Fortress"},{"id":"45","n":"Antoine Semenyo","t":"Manchester City","k":"20th Anniversary"},{"id":"46","n":"Senne Lammens","t":"Manchester United","k":"Basis"},{"id":"47","n":"Luke Shaw","t":"Manchester United","k":"Basis"},{"id":"48","n":"Leny Yoro","t":"Manchester United","k":"Basis"},{"id":"49","n":"Harry Maguire","t":"Manchester United","k":"Basis"},{"id":"50","n":"Patrick Dorgu","t":"Manchester United","k":"Basis"},{"id":"51","n":"Kobbie Mainoo","t":"Manchester United","k":"Basis"},{"id":"52","n":"Bruno Fernandes","t":"Manchester United","k":"Leader"},{"id":"53","n":"Manuel Ugarte","t":"Manchester United","k":"Basis"},{"id":"54","n":"JJ Gabriel","t":"Manchester United","k":"Attax Debutant"},{"id":"55","n":"Matheus Cunha","t":"Manchester United","k":"Basis"},{"id":"56","n":"Amad Diallo","t":"Manchester United","k":"Basis"},{"id":"57","n":"Bryan Mbeumo","t":"Manchester United","k":"Basis"},{"id":"58","n":"Benjamin Šeško","t":"Manchester United","k":"Basis"},{"id":"59","n":"Diogo Dalot","t":"Manchester United","k":"Man of the Match"},{"id":"60","n":"Mason Mount","t":"Manchester United","k":"Power Play"},{"id":"61","n":"Benjamin Šeško","t":"Manchester United","k":"Goaliaths"},{"id":"62","n":"Lisandro Martínez","t":"Manchester United","k":"Fortress"},{"id":"63","n":"Matheus Cunha","t":"Manchester United","k":"20th Anniversary"},{"id":"64","n":"Emiliano Martínez","t":"Aston Villa","k":"Basis"},{"id":"65","n":"Pau Torres","t":"Aston Villa","k":"Basis"},{"id":"66","n":"Ezri Konsa","t":"Aston Villa","k":"Basis"},{"id":"67","n":"Ian Maatsen","t":"Aston Villa","k":"Basis"},{"id":"68","n":"Matty Cash","t":"Aston Villa","k":"Basis"},{"id":"69","n":"Boubacar Kamara","t":"Aston Villa","k":"Basis"},{"id":"70","n":"Amadou Onana","t":"Aston Villa","k":"Basis"},{"id":"71","n":"Youri Tielemans","t":"Aston Villa","k":"Basis"},{"id":"72","n":"Morgan Rogers","t":"Aston Villa","k":"Basis"},{"id":"73","n":"John McGinn","t":"Aston Villa","k":"Leader"},{"id":"74","n":"Tammy Abraham","t":"Aston Villa","k":"Basis"},{"id":"75","n":"Alysson","t":"Aston Villa","k":"Attax Debutant"},{"id":"76","n":"Ollie Watkins","t":"Aston Villa","k":"Basis"},{"id":"77","n":"Lucas Digne","t":"Aston Villa","k":"Man of the Match"},{"id":"78","n":"Ollie Watkins","t":"Aston Villa","k":"Power Play"},{"id":"79","n":"Emiliano Buendía","t":"Aston Villa","k":"Goaliaths"},{"id":"80","n":"Tyrone Mings","t":"Aston Villa","k":"Fortress"},{"id":"81","n":"Morgan Rogers","t":"Aston Villa","k":"20th Anniversary"},{"id":"82","n":"Alisson Becker","t":"Liverpool","k":"Basis"},{"id":"83","n":"Virgil van Dijk","t":"Liverpool","k":"Leader"},{"id":"84","n":"Jérémy Jacquet","t":"Liverpool","k":"Attax Debutant"},{"id":"85","n":"Jeremie Frimpong","t":"Liverpool","k":"Basis"},{"id":"86","n":"Dominik Szoboszlai","t":"Liverpool","k":"Basis"},{"id":"87","n":"Alexis Mac Allister","t":"Liverpool","k":"Basis"},{"id":"88","n":"Ryan Gravenberch","t":"Liverpool","k":"Basis"},{"id":"89","n":"Florian Wirtz","t":"Liverpool","k":"Basis"},{"id":"90","n":"Víctor Muñoz","t":"Liverpool","k":"Basis"},{"id":"91","n":"Rio Ngumoha","t":"Liverpool","k":"Basis"},{"id":"92","n":"Alexander Isak","t":"Liverpool","k":"Basis"},{"id":"93","n":"Hugo Ekitiké","t":"Liverpool","k":"Basis"},{"id":"94","n":"Cody Gakpo","t":"Liverpool","k":"Basis"},{"id":"95","n":"Milos Kerkez","t":"Liverpool","k":"Man of the Match"},{"id":"96","n":"Alexander Isak","t":"Liverpool","k":"Power Play"},{"id":"97","n":"Hugo Ekitiké","t":"Liverpool","k":"Goaliaths"},{"id":"98","n":"Virgil van Dijk","t":"Liverpool","k":"Fortress"},{"id":"99","n":"Dominik Szoboszlai","t":"Liverpool","k":"20th Anniversary"},{"id":"100","n":"Djordje Petrović","t":"Bournemouth","k":"Basis"},{"id":"101","n":"Julio Soler","t":"Bournemouth","k":"Basis"},{"id":"102","n":"Bafodé Diakité","t":"Bournemouth","k":"Basis"},{"id":"103","n":"Veljko Milosavljević","t":"Bournemouth","k":"Basis"},{"id":"104","n":"Tyler Adams","t":"Bournemouth","k":"Leader"},{"id":"105","n":"Alex Scott","t":"Bournemouth","k":"Basis"},{"id":"106","n":"Alex Tóth","t":"Bournemouth","k":"Basis"},{"id":"107","n":"Justin Kluivert","t":"Bournemouth","k":"Basis"},{"id":"108","n":"David Brooks","t":"Bournemouth","k":"Basis"},{"id":"109","n":"Amine Adli","t":"Bournemouth","k":"Basis"},{"id":"110","n":"Rayan","t":"Bournemouth","k":"Attax Debutant"},{"id":"111","n":"Junior Kroupi","t":"Bournemouth","k":"Basis"},{"id":"112","n":"Evanilson","t":"Bournemouth","k":"Basis"},{"id":"113","n":"Rayan","t":"Bournemouth","k":"Man of the Match"},{"id":"114","n":"Tyler Adams","t":"Bournemouth","k":"Power Play"},{"id":"115","n":"Junior Kroupi","t":"Bournemouth","k":"Goaliaths"},{"id":"116","n":"James Hill","t":"Bournemouth","k":"Fortress"},{"id":"117","n":"Evanilson","t":"Bournemouth","k":"20th Anniversary"},{"id":"118","n":"","t":"Barcelona","k":"Basis"},{"id":"119","n":"","t":"Barcelona","k":"Basis"},{"id":"120","n":"","t":"Barcelona","k":"Basis"},{"id":"121","n":"","t":"Barcelona","k":"Basis"},{"id":"122","n":"","t":"Barcelona","k":"Basis"},{"id":"123","n":"","t":"Barcelona","k":"Basis"},{"id":"124","n":"","t":"Barcelona","k":"Basis"},{"id":"125","n":"","t":"Barcelona","k":"Basis"},{"id":"126","n":"","t":"Barcelona","k":"Basis"},{"id":"127","n":"","t":"Barcelona","k":"Basis"},{"id":"128","n":"","t":"Barcelona","k":"Basis"},{"id":"129","n":"","t":"Barcelona","k":"Basis"},{"id":"130","n":"","t":"Barcelona","k":"Basis"},{"id":"131","n":"","t":"Barcelona","k":"Man of the Match"},{"id":"132","n":"","t":"Barcelona","k":"Power Play"},{"id":"133","n":"","t":"Barcelona","k":"Goaliaths"},{"id":"134","n":"","t":"Barcelona","k":"Fortress"},{"id":"135","n":"","t":"Barcelona","k":"20th Anniversary"},{"id":"136","n":"","t":"Real Madrid","k":"Basis"},{"id":"137","n":"","t":"Real Madrid","k":"Basis"},{"id":"138","n":"","t":"Real Madrid","k":"Basis"},{"id":"139","n":"","t":"Real Madrid","k":"Basis"},{"id":"140","n":"","t":"Real Madrid","k":"Basis"},{"id":"141","n":"","t":"Real Madrid","k":"Basis"},{"id":"142","n":"","t":"Real Madrid","k":"Basis"},{"id":"143","n":"","t":"Real Madrid","k":"Basis"},{"id":"144","n":"","t":"Real Madrid","k":"Basis"},{"id":"145","n":"","t":"Real Madrid","k":"Basis"},{"id":"146","n":"","t":"Real Madrid","k":"Basis"},{"id":"147","n":"","t":"Real Madrid","k":"Basis"},{"id":"148","n":"","t":"Real Madrid","k":"Basis"},{"id":"149","n":"","t":"Real Madrid","k":"Man of the Match"},{"id":"150","n":"","t":"Real Madrid","k":"Power Play"},{"id":"151","n":"","t":"Real Madrid","k":"Goaliaths"},{"id":"152","n":"","t":"Real Madrid","k":"Fortress"},{"id":"153","n":"","t":"Real Madrid","k":"20th Anniversary"},{"id":"154","n":"","t":"Villarreal","k":"Basis"},{"id":"155","n":"","t":"Villarreal","k":"Basis"},{"id":"156","n":"","t":"Villarreal","k":"Basis"},{"id":"157","n":"","t":"Villarreal","k":"Basis"},{"id":"158","n":"","t":"Villarreal","k":"Basis"},{"id":"159","n":"","t":"Villarreal","k":"Basis"},{"id":"160","n":"","t":"Villarreal","k":"Basis"},{"id":"161","n":"","t":"Villarreal","k":"Basis"},{"id":"162","n":"","t":"Villarreal","k":"Basis"},{"id":"163","n":"","t":"Villarreal","k":"Basis"},{"id":"164","n":"","t":"Villarreal","k":"Basis"},{"id":"165","n":"","t":"Villarreal","k":"Basis"},{"id":"166","n":"","t":"Villarreal","k":"Basis"},{"id":"167","n":"","t":"Villarreal","k":"Man of the Match"},{"id":"168","n":"","t":"Villarreal","k":"Power Play"},{"id":"169","n":"","t":"Villarreal","k":"Goaliaths"},{"id":"170","n":"","t":"Villarreal","k":"Fortress"},{"id":"171","n":"","t":"Villarreal","k":"20th Anniversary"},{"id":"172","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"173","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"174","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"175","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"176","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"177","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"178","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"179","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"180","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"181","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"182","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"183","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"184","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"185","n":"","t":"Atlético Madrid","k":"Man of the Match"},{"id":"186","n":"","t":"Atlético Madrid","k":"Power Play"},{"id":"187","n":"","t":"Atlético Madrid","k":"Goaliaths"},{"id":"188","n":"","t":"Atlético Madrid","k":"Fortress"},{"id":"189","n":"","t":"Atlético Madrid","k":"20th Anniversary"},{"id":"190","n":"","t":"Real Betis","k":"Basis"},{"id":"191","n":"","t":"Real Betis","k":"Basis"},{"id":"192","n":"","t":"Real Betis","k":"Basis"},{"id":"193","n":"","t":"Real Betis","k":"Basis"},{"id":"194","n":"","t":"Real Betis","k":"Basis"},{"id":"195","n":"","t":"Real Betis","k":"Basis"},{"id":"196","n":"","t":"Real Betis","k":"Basis"},{"id":"197","n":"","t":"Real Betis","k":"Basis"},{"id":"198","n":"","t":"Real Betis","k":"Basis"},{"id":"199","n":"","t":"Real Betis","k":"Basis"},{"id":"200","n":"","t":"Real Betis","k":"Basis"},{"id":"201","n":"","t":"Real Betis","k":"Basis"},{"id":"202","n":"","t":"Real Betis","k":"Basis"},{"id":"203","n":"","t":"Real Betis","k":"Man of the Match"},{"id":"204","n":"","t":"Real Betis","k":"Power Play"},{"id":"205","n":"","t":"Real Betis","k":"Goaliaths"},{"id":"206","n":"","t":"Real Betis","k":"Fortress"},{"id":"207","n":"","t":"Real Betis","k":"20th Anniversary"},{"id":"208","n":"","t":"Bayern München","k":"Basis"},{"id":"209","n":"","t":"Bayern München","k":"Basis"},{"id":"210","n":"","t":"Bayern München","k":"Basis"},{"id":"211","n":"","t":"Bayern München","k":"Basis"},{"id":"212","n":"","t":"Bayern München","k":"Basis"},{"id":"213","n":"","t":"Bayern München","k":"Basis"},{"id":"214","n":"","t":"Bayern München","k":"Basis"},{"id":"215","n":"","t":"Bayern München","k":"Basis"},{"id":"216","n":"","t":"Bayern München","k":"Basis"},{"id":"217","n":"","t":"Bayern München","k":"Basis"},{"id":"218","n":"","t":"Bayern München","k":"Basis"},{"id":"219","n":"","t":"Bayern München","k":"Basis"},{"id":"220","n":"","t":"Bayern München","k":"Basis"},{"id":"221","n":"","t":"Bayern München","k":"Man of the Match"},{"id":"222","n":"","t":"Bayern München","k":"Power Play"},{"id":"223","n":"","t":"Bayern München","k":"Goaliaths"},{"id":"224","n":"","t":"Bayern München","k":"Fortress"},{"id":"225","n":"","t":"Bayern München","k":"20th Anniversary"},{"id":"226","n":"","t":"Dortmund","k":"Basis"},{"id":"227","n":"","t":"Dortmund","k":"Basis"},{"id":"228","n":"","t":"Dortmund","k":"Basis"},{"id":"229","n":"","t":"Dortmund","k":"Basis"},{"id":"230","n":"","t":"Dortmund","k":"Basis"},{"id":"231","n":"","t":"Dortmund","k":"Basis"},{"id":"232","n":"","t":"Dortmund","k":"Basis"},{"id":"233","n":"","t":"Dortmund","k":"Basis"},{"id":"234","n":"","t":"Dortmund","k":"Basis"},{"id":"235","n":"","t":"Dortmund","k":"Basis"},{"id":"236","n":"","t":"Dortmund","k":"Basis"},{"id":"237","n":"","t":"Dortmund","k":"Basis"},{"id":"238","n":"","t":"Dortmund","k":"Basis"},{"id":"239","n":"","t":"Dortmund","k":"Man of the Match"},{"id":"240","n":"","t":"Dortmund","k":"Power Play"},{"id":"241","n":"","t":"Dortmund","k":"Goaliaths"},{"id":"242","n":"","t":"Dortmund","k":"Fortress"},{"id":"243","n":"","t":"Dortmund","k":"20th Anniversary"},{"id":"244","n":"","t":"RB Leipzig","k":"Basis"},{"id":"245","n":"","t":"RB Leipzig","k":"Basis"},{"id":"246","n":"","t":"RB Leipzig","k":"Basis"},{"id":"247","n":"","t":"RB Leipzig","k":"Basis"},{"id":"248","n":"","t":"RB Leipzig","k":"Basis"},{"id":"249","n":"","t":"RB Leipzig","k":"Basis"},{"id":"250","n":"","t":"RB Leipzig","k":"Basis"},{"id":"251","n":"","t":"RB Leipzig","k":"Basis"},{"id":"252","n":"","t":"RB Leipzig","k":"Basis"},{"id":"253","n":"","t":"RB Leipzig","k":"Basis"},{"id":"254","n":"","t":"RB Leipzig","k":"Basis"},{"id":"255","n":"","t":"RB Leipzig","k":"Basis"},{"id":"256","n":"","t":"RB Leipzig","k":"Basis"},{"id":"257","n":"","t":"RB Leipzig","k":"Man of the Match"},{"id":"258","n":"","t":"RB Leipzig","k":"Power Play"},{"id":"259","n":"","t":"RB Leipzig","k":"Goaliaths"},{"id":"260","n":"","t":"RB Leipzig","k":"Fortress"},{"id":"261","n":"","t":"RB Leipzig","k":"20th Anniversary"},{"id":"262","n":"","t":"Stuttgart","k":"Basis"},{"id":"263","n":"","t":"Stuttgart","k":"Basis"},{"id":"264","n":"","t":"Stuttgart","k":"Basis"},{"id":"265","n":"","t":"Stuttgart","k":"Basis"},{"id":"266","n":"","t":"Stuttgart","k":"Basis"},{"id":"267","n":"","t":"Stuttgart","k":"Basis"},{"id":"268","n":"","t":"Stuttgart","k":"Basis"},{"id":"269","n":"","t":"Stuttgart","k":"Basis"},{"id":"270","n":"","t":"Stuttgart","k":"Basis"},{"id":"271","n":"","t":"Stuttgart","k":"Basis"},{"id":"272","n":"","t":"Stuttgart","k":"Basis"},{"id":"273","n":"","t":"Stuttgart","k":"Basis"},{"id":"274","n":"","t":"Stuttgart","k":"Basis"},{"id":"275","n":"","t":"Stuttgart","k":"Man of the Match"},{"id":"276","n":"","t":"Stuttgart","k":"Power Play"},{"id":"277","n":"","t":"Stuttgart","k":"Goaliaths"},{"id":"278","n":"","t":"Stuttgart","k":"Fortress"},{"id":"279","n":"","t":"Stuttgart","k":"20th Anniversary"},{"id":"280","n":"Mark Flekken","t":"Leverkusen","k":"Basis"},{"id":"281","n":"Arthur","t":"Leverkusen","k":"Basis"},{"id":"282","n":"Loïc Badé","t":"Leverkusen","k":"Basis"},{"id":"283","n":"Edmond Tapsoba","t":"Leverkusen","k":"Basis"},{"id":"284","n":"Robert Andrich","t":"Leverkusen","k":"Leader"},{"id":"285","n":"Exequiel Palacios","t":"Leverkusen","k":"Basis"},{"id":"286","n":"Aleix García","t":"Leverkusen","k":"Basis"},{"id":"287","n":"Malik Tillman","t":"Leverkusen","k":"Basis"},{"id":"288","n":"Ibrahim Maza","t":"Leverkusen","k":"Basis"},{"id":"289","n":"Kerim Alajbegović","t":"Leverkusen","k":"Attax Debutant"},{"id":"290","n":"Ernest Poku","t":"Leverkusen","k":"Basis"},{"id":"291","n":"Eliesse Ben Seghir","t":"Leverkusen","k":"Basis"},{"id":"292","n":"Patrik Schick","t":"Leverkusen","k":"Basis"},{"id":"293","n":"Equi Fernández","t":"Leverkusen","k":"Man of the Match"},{"id":"294","n":"Lucas Vázquez","t":"Leverkusen","k":"Power Play"},{"id":"295","n":"Christian Kofane","t":"Leverkusen","k":"Goaliaths"},{"id":"296","n":"Jarell Quansah","t":"Leverkusen","k":"Fortress"},{"id":"297","n":"Malik Tillman","t":"Leverkusen","k":"20th Anniversary"},{"id":"298","n":"Nehuén Pérez","t":"Porto","k":"Basis"},{"id":"299","n":"Jan Bednarek","t":"Porto","k":"Basis"},{"id":"300","n":"Jakub Kiwior","t":"Porto","k":"Basis"},{"id":"301","n":"Zaidu Sanusi","t":"Porto","k":"Basis"},{"id":"302","n":"Francisco Moura","t":"Porto","k":"Basis"},{"id":"303","n":"Alberto Costa","t":"Porto","k":"Basis"},{"id":"304","n":"Alan Varela","t":"Porto","k":"Leader"},{"id":"305","n":"Victor Froholdt","t":"Porto","k":"Attax Debutant"},{"id":"306","n":"Gabri Veiga","t":"Porto","k":"Basis"},{"id":"307","n":"Rodrigo Mora","t":"Porto","k":"Basis"},{"id":"308","n":"Borja Sainz","t":"Porto","k":"Basis"},{"id":"309","n":"Pepê","t":"Porto","k":"Basis"},{"id":"310","n":"Samu Aghehowa","t":"Porto","k":"Basis"},{"id":"311","n":"William Gomes","t":"Porto","k":"Man of the Match"},{"id":"312","n":"Samu Aghehowa","t":"Porto","k":"Power Play"},{"id":"313","n":"Rodrigo Mora","t":"Porto","k":"Goaliaths"},{"id":"314","n":"Alan Varela","t":"Porto","k":"Fortress"},{"id":"315","n":"Gabri Veiga","t":"Porto","k":"20th Anniversary"},{"id":"316","n":"Amar Dedić","t":"Benfica","k":"Basis"},{"id":"317","n":"António Silva","t":"Benfica","k":"Leader"},{"id":"318","n":"Tomás Araújo","t":"Benfica","k":"Basis"},{"id":"319","n":"Samuel Dahl","t":"Benfica","k":"Attax Debutant"},{"id":"320","n":"Richard Ríos","t":"Benfica","k":"Basis"},{"id":"321","n":"Fredrik Aursnes","t":"Benfica","k":"Basis"},{"id":"322","n":"Leandro Barreiro","t":"Benfica","k":"Basis"},{"id":"323","n":"João Rêgo","t":"Benfica","k":"Basis"},{"id":"324","n":"Georgiy Sudakov","t":"Benfica","k":"Basis"},{"id":"325","n":"Dodi Lukébakio","t":"Benfica","k":"Basis"},{"id":"326","n":"Vangelis Pavlidis","t":"Benfica","k":"Basis"},{"id":"327","n":"Anísio Cabral","t":"Benfica","k":"Basis"},{"id":"328","n":"Bruma","t":"Benfica","k":"Basis"},{"id":"329","n":"Rafa Silva","t":"Benfica","k":"Man of the Match"},{"id":"330","n":"Fredrik Aursnes","t":"Benfica","k":"Power Play"},{"id":"331","n":"Franjo Ivanović","t":"Benfica","k":"Goaliaths"},{"id":"332","n":"Alexander Bah","t":"Benfica","k":"Fortress"},{"id":"333","n":"Vangelis Pavlidis","t":"Benfica","k":"20th Anniversary"},{"id":"334","n":"Lucas Chevalier","t":"Paris SG","k":"Basis"},{"id":"335","n":"Marquinhos","t":"Paris SG","k":"Leader"},{"id":"336","n":"Willian Pacho","t":"Paris SG","k":"Basis"},{"id":"337","n":"Achraf Hakimi","t":"Paris SG","k":"Basis"},{"id":"338","n":"Nuno Mendes","t":"Paris SG","k":"Attax Master"},{"id":"339","n":"João Neves","t":"Paris SG","k":"Basis"},{"id":"340","n":"Warren Zaïre-Emery","t":"Paris SG","k":"Basis"},{"id":"341","n":"Vitinha","t":"Paris SG","k":"Basis"},{"id":"342","n":"Senny Mayulu","t":"Paris SG","k":"Basis"},{"id":"343","n":"Bradley Barcola","t":"Paris SG","k":"Basis"},{"id":"344","n":"Désiré Doué","t":"Paris SG","k":"Basis"},{"id":"345","n":"Khvicha Kvaratskhelia","t":"Paris SG","k":"Basis"},{"id":"346","n":"Ousmane Dembélé","t":"Paris SG","k":"Basis"},{"id":"347","n":"Ibrahim Mbaye","t":"Paris SG","k":"Man of the Match"},{"id":"348","n":"Fabián Ruiz","t":"Paris SG","k":"Power Play"},{"id":"349","n":"Dro Fernández","t":"Paris SG","k":"Goaliaths"},{"id":"350","n":"Illia Zabarnyi","t":"Paris SG","k":"Fortress"},{"id":"351","n":"Khvicha Kvaratskhelia","t":"Paris SG","k":"20th Anniversary"},{"id":"352","n":"Aleksa Terzić","t":"Salzburg","k":"Basis"},{"id":"353","n":"Frans Krätzig","t":"Salzburg","k":"Attax Debutant"},{"id":"354","n":"Stefan Lainer","t":"Salzburg","k":"Basis"},{"id":"355","n":"Dominik Schmid","t":"Salzburg","k":"Basis"},{"id":"356","n":"Kévin Boma","t":"Salzburg","k":"Basis"},{"id":"357","n":"Maurits Kjærgaard","t":"Salzburg","k":"Leader"},{"id":"358","n":"Soumaila Diabaté","t":"Salzburg","k":"Basis"},{"id":"359","n":"Sota Kitano","t":"Salzburg","k":"Basis"},{"id":"360","n":"Nikolas Veratschnig","t":"Salzburg","k":"Basis"},{"id":"361","n":"Yorbe Vertessen","t":"Salzburg","k":"Basis"},{"id":"362","n":"Edmund Baidoo","t":"Salzburg","k":"Basis"},{"id":"363","n":"Clement Bischoff","t":"Salzburg","k":"Basis"},{"id":"364","n":"Karim Konaté","t":"Salzburg","k":"Basis"},{"id":"365","n":"Frans Krätzig","t":"Salzburg","k":"Man of the Match"},{"id":"366","n":"Clement Bischoff","t":"Salzburg","k":"Power Play"},{"id":"367","n":"Edmund Baidoo","t":"Salzburg","k":"Goaliaths"},{"id":"368","n":"Tim Drexler","t":"Salzburg","k":"Fortress"},{"id":"369","n":"Yorbe Vertessen","t":"Salzburg","k":"20th Anniversary"},{"id":"370","n":"Sergiño Dest","t":"PSV Eindhoven","k":"Basis"},{"id":"371","n":"Yarek Gasiorowski","t":"PSV Eindhoven","k":"Basis"},{"id":"372","n":"Ryan Flamingo","t":"PSV Eindhoven","k":"Basis"},{"id":"373","n":"Mauro Júnior","t":"PSV Eindhoven","k":"Basis"},{"id":"374","n":"Jerdy Schouten","t":"PSV Eindhoven","k":"Leader"},{"id":"375","n":"Joey Veerman","t":"PSV Eindhoven","k":"Basis"},{"id":"376","n":"Paul Wanner","t":"PSV Eindhoven","k":"Basis"},{"id":"377","n":"Guus Til","t":"PSV Eindhoven","k":"Basis"},{"id":"378","n":"Ricardo Pepi","t":"PSV Eindhoven","k":"Basis"},{"id":"379","n":"Esmir Bajraktarević","t":"PSV Eindhoven","k":"Attax Debutant"},{"id":"380","n":"Dennis Man","t":"PSV Eindhoven","k":"Basis"},{"id":"381","n":"Ruben van Bommel","t":"PSV Eindhoven","k":"Basis"},{"id":"382","n":"Ivan Perišić","t":"PSV Eindhoven","k":"Basis"},{"id":"383","n":"Ricardo Pepi","t":"PSV Eindhoven","k":"Man of the Match"},{"id":"384","n":"Ivan Perišić","t":"PSV Eindhoven","k":"Power Play"},{"id":"385","n":"Couhaib Driouech","t":"PSV Eindhoven","k":"Goaliaths"},{"id":"386","n":"Armando Obispo","t":"PSV Eindhoven","k":"Fortress"},{"id":"387","n":"Guus Til","t":"PSV Eindhoven","k":"20th Anniversary"},{"id":"388","n":"Alessandro Bastoni","t":"Inter Mailand","k":"Basis"},{"id":"389","n":"Federico Dimarco","t":"Inter Mailand","k":"Attax Master"},{"id":"390","n":"Yann-Aurel Bisseck","t":"Inter Mailand","k":"Basis"},{"id":"391","n":"Carlos Augusto","t":"Inter Mailand","k":"Basis"},{"id":"392","n":"Piotr Zieliński","t":"Inter Mailand","k":"Basis"},{"id":"393","n":"Davide Frattesi","t":"Inter Mailand","k":"Basis"},{"id":"394","n":"Petar Sučić","t":"Inter Mailand","k":"Basis"},{"id":"395","n":"Hakan Çalhanoğlu","t":"Inter Mailand","k":"Basis"},{"id":"396","n":"Nicolò Barella","t":"Inter Mailand","k":"Basis"},{"id":"397","n":"Pio Esposito","t":"Inter Mailand","k":"Basis"},{"id":"398","n":"Ange-Yoan Bonny","t":"Inter Mailand","k":"Basis"},{"id":"399","n":"Lautaro Martínez","t":"Inter Mailand","k":"Leader"},{"id":"400","n":"Marcus Thuram","t":"Inter Mailand","k":"Basis"},{"id":"401","n":"Luis Henrique","t":"Inter Mailand","k":"Man of the Match"},{"id":"402","n":"Andy Diouf","t":"Inter Mailand","k":"Power Play"},{"id":"403","n":"Piotr Zieliński","t":"Inter Mailand","k":"Goaliaths"},{"id":"404","n":"Manuel Akanji","t":"Inter Mailand","k":"Fortress"},{"id":"405","n":"Hakan Çalhanoğlu","t":"Inter Mailand","k":"20th Anniversary"},{"id":"406","n":"Marco Carnesecchi","t":"Atalanta","k":"Basis"},{"id":"407","n":"Davide Zappacosta","t":"Atalanta","k":"Basis"},{"id":"408","n":"Isak Hien","t":"Atalanta","k":"Basis"},{"id":"409","n":"Giorgio Scalvini","t":"Atalanta","k":"Basis"},{"id":"410","n":"Honest Ahanor","t":"Atalanta","k":"Attax Debutant"},{"id":"411","n":"Marten de Roon","t":"Atalanta","k":"Leader"},{"id":"412","n":"Raoul Bellanova","t":"Atalanta","k":"Basis"},{"id":"413","n":"Charles De Ketelaere","t":"Atalanta","k":"Basis"},{"id":"414","n":"Mario Pašalić","t":"Atalanta","k":"Basis"},{"id":"415","n":"Nicola Zalewski","t":"Atalanta","k":"Basis"},{"id":"416","n":"Lazar Samardžić","t":"Atalanta","k":"Basis"},{"id":"417","n":"Giacomo Raspadori","t":"Atalanta","k":"Basis"},{"id":"418","n":"Kamaldeen Sulemana","t":"Atalanta","k":"Basis"},{"id":"419","n":"Lorenzo Bernasconi","t":"Atalanta","k":"Man of the Match"},{"id":"420","n":"Odilon Kossounou","t":"Atalanta","k":"Power Play"},{"id":"421","n":"Nikola Krstović","t":"Atalanta","k":"Goaliaths"},{"id":"422","n":"Berat Djimsiti","t":"Atalanta","k":"Fortress"},{"id":"423","n":"Gianluca Scamacca","t":"Atalanta","k":"20th Anniversary"},{"id":"424","n":"Mike Maignan","t":"AC Mailand","k":"Leader"},{"id":"425","n":"Fikayo Tomori","t":"AC Mailand","k":"Basis"},{"id":"426","n":"Koni De Winter","t":"AC Mailand","k":"Basis"},{"id":"427","n":"Matteo Gabbia","t":"AC Mailand","k":"Basis"},{"id":"428","n":"Strahinja Pavlović","t":"AC Mailand","k":"Basis"},{"id":"429","n":"Youssouf Fofana","t":"AC Mailand","k":"Basis"},{"id":"430","n":"Adrien Rabiot","t":"AC Mailand","k":"Basis"},{"id":"431","n":"Samuele Ricci","t":"AC Mailand","k":"Attax Debutant"},{"id":"432","n":"Luka Modrić","t":"AC Mailand","k":"Basis"},{"id":"433","n":"Alexis Saelemaekers","t":"AC Mailand","k":"Basis"},{"id":"434","n":"Christian Pulisic","t":"AC Mailand","k":"Basis"},{"id":"435","n":"Rafael Leão","t":"AC Mailand","k":"Basis"},{"id":"436","n":"Santiago Giménez","t":"AC Mailand","k":"Basis"},{"id":"437","n":"Davide Bartesaghi","t":"AC Mailand","k":"Man of the Match"},{"id":"438","n":"Alexis Saelemaekers","t":"AC Mailand","k":"Power Play"},{"id":"439","n":"Christopher Nkunku","t":"AC Mailand","k":"Goaliaths"},{"id":"440","n":"Strahinja Pavlović","t":"AC Mailand","k":"Fortress"},{"id":"441","n":"Christian Pulisic","t":"AC Mailand","k":"20th Anniversary"},{"id":"442","n":"Michele Di Gregorio","t":"Juventus","k":"Basis"},{"id":"443","n":"Pierre Kalulu","t":"Juventus","k":"Basis"},{"id":"444","n":"Andrea Cambiaso","t":"Juventus","k":"Basis"},{"id":"445","n":"Lloyd Kelly","t":"Juventus","k":"Attax Debutant"},{"id":"446","n":"Bremer","t":"Juventus","k":"Basis"},{"id":"447","n":"Khéphren Thuram","t":"Juventus","k":"Basis"},{"id":"448","n":"Manuel Locatelli","t":"Juventus","k":"Leader"},{"id":"449","n":"Teun Koopmeiners","t":"Juventus","k":"Basis"},{"id":"450","n":"Weston McKennie","t":"Juventus","k":"Basis"},{"id":"451","n":"Fabio Miretti","t":"Juventus","k":"Basis"},{"id":"452","n":"Jonathan David","t":"Juventus","k":"Basis"},{"id":"453","n":"Francisco Conceição","t":"Juventus","k":"Basis"},{"id":"454","n":"Kenan Yıldız","t":"Juventus","k":"Basis"},{"id":"455","n":"Edon Zhegrova","t":"Juventus","k":"Man of the Match"},{"id":"456","n":"Weston McKennie","t":"Juventus","k":"Power Play"},{"id":"457","n":"Loïs Openda","t":"Juventus","k":"Goaliaths"},{"id":"458","n":"Federico Gatti","t":"Juventus","k":"Fortress"},{"id":"459","n":"Khéphren Thuram","t":"Juventus","k":"20th Anniversary"},{"id":"460","n":"Viktor Gyökeres","t":"Sonderserie","k":"Slick"},{"id":"461","n":"Erling Haaland","t":"Sonderserie","k":"Slick"},{"id":"462","n":"Morgan Rogers","t":"Sonderserie","k":"Slick"},{"id":"463","n":"Rio Ngumoha","t":"Sonderserie","k":"Slick"},{"id":"464","n":"Vinícius Júnior","t":"Sonderserie","k":"Slick"},{"id":"465","n":"Serhou Guirassy","t":"Sonderserie","k":"Slick"},{"id":"466","n":"Bradley Barcola","t":"Sonderserie","k":"Slick"},{"id":"467","n":"Lautaro Martínez","t":"Sonderserie","k":"Slick"},{"id":"468","n":"Kenan Yıldız","t":"Sonderserie","k":"Slick"},{"id":"469","n":"Rayan Cherki","t":"Sonderserie","k":"Genuine Genius"},{"id":"470","n":"Bruno Fernandes","t":"Sonderserie","k":"Genuine Genius"},{"id":"471","n":"Amad Diallo","t":"Sonderserie","k":"Genuine Genius"},{"id":"472","n":"Florian Wirtz","t":"Sonderserie","k":"Genuine Genius"},{"id":"473","n":"Pedri","t":"Sonderserie","k":"Genuine Genius"},{"id":"474","n":"Jude Bellingham","t":"Sonderserie","k":"Genuine Genius"},{"id":"475","n":"Jamal Musiala","t":"Sonderserie","k":"Genuine Genius"},{"id":"476","n":"João Neves","t":"Sonderserie","k":"Genuine Genius"},{"id":"477","n":"Federico Dimarco","t":"Sonderserie","k":"Genuine Genius"},{"id":"478","n":"Manuel Neuer","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"479","n":"Paolo Maldini","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"480","n":"Franz Beckenbauer","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"481","n":"Andrés Iniesta","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"482","n":"Luka Modrić","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"483","n":"Lionel Messi","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"484","n":"Ronaldo","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"485","n":"Thierry Henry","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"486","n":"Ronaldinho","t":"Sonderserie","k":"Unbeatable 101"},{"id":"487","n":"Gabriel Magalhães","t":"Sonderserie","k":"Supreme Master"},{"id":"488","n":"Kylian Mbappé","t":"Sonderserie","k":"Supreme Master"},{"id":"489","n":"Harry Kane","t":"Sonderserie","k":"Supreme Master"},{"id":"490","n":"Khvicha Kvaratskhelia","t":"Sonderserie","k":"Supreme Master"},{"id":"491","n":"Kenan Yıldız","t":"Sonderserie","k":"Supreme Master"},{"id":"AOH1","n":"Hugo Ekitiké","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH2","n":"Raphinha","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH3","n":"Harry Kane","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH4","n":"Lautaro Martínez","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH5","n":"Bryan Mbeumo","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH6","n":"Lamine Yamal","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH7","n":"Désiré Doué","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH8","n":"Rodrigo Mora","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH9","n":"Erling Haaland","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH10","n":"Jude Bellingham","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH11","n":"Karim Adeyemi","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH12","n":"João Neves","t":"Limited Edition","k":"Age of Heroes"},{"id":"GH1","n":"Bukayo Saka","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH2","n":"Julián Álvarez","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH3","n":"SL Benfica","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH4","n":"Ousmane Dembélé","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH5","n":"Max Dowman","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH6","n":"Franco Mastantuono","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH7","n":"Lennart Karl","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH8","n":"Kenan Yıldız","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH9","n":"Bruno Fernandes","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH10","n":"Kylian Mbappé","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH11","n":"Borussia Dortmund","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH12","n":"Vitinha","t":"Limited Edition","k":"Greatest Hits"},{"id":"LE1","n":"Thierry Henry","t":"Limited Edition","k":"Legends"},{"id":"LE2","n":"Ryan Giggs","t":"Limited Edition","k":"Legends"},{"id":"LE3","n":"Lionel Messi","t":"Limited Edition","k":"Legends"},{"id":"LE4","n":"Luís Figo","t":"Limited Edition","k":"Legends"},{"id":"LE5","n":"Lothar Matthäus","t":"Limited Edition","k":"Legends"},{"id":"LE6","n":"Mario Balotelli","t":"Limited Edition","k":"Legends"},{"id":"LE7","n":"Ruud Gullit","t":"Limited Edition","k":"Legends"},{"id":"BN1","n":"Eberechi Eze","t":"Limited Edition","k":"Black Nitro"},{"id":"WH1","n":"Désiré Doué","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH2","n":"Florian Wirtz","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH3","n":"Harry Kane","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH4","n":"Jamal Musiala","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH5","n":"Lionel Messi","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH6","n":"Max Dowman","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH7","n":"Pio Esposito","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH8","n":"Rayan Cherki","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH9","n":"Ronaldo","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH10","n":"","t":"Sonderserie","k":"WHOOSH!"},{"id":"EN1","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN2","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN3","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN4","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN5","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN6","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN7","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN8","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN9","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN10","n":"","t":"Sonderserie","k":"Enigma"},{"id":"MY1","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY2","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY3","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY4","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY5","n":"","t":"Sonderserie","k":"Mystical"},{"id":"FE 1","n":"Max Dowman","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 2","n":"Erling Haaland","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 3","n":"Matheus Cunha","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 4","n":"Dominik Szoboszlai","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 5","n":"Raphinha","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 6","n":"Viní Jr.","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 7","n":"Ademola Lookman","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 8","n":"Harry Kane","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 9","n":"Kylian Mbappé","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 10","n":"Anthony Gordon","t":"Sonderserie","k":"Festive Edition"},{"id":"T1","n":"Agent / Referee / VAR / Injury","t":"Sonderserie","k":"Taktikkarte"}];
+const STORAGE='match-attax-26-27-v2';
+const LEGACY_STORAGE='match-attax-26-27-v1';
+let counts={};
+try{
+  counts=JSON.parse(localStorage.getItem(STORAGE)||'{}')||{};
+  if(!Object.keys(counts).length){
+    const legacy=JSON.parse(localStorage.getItem(LEGACY_STORAGE)||'{}')||{};
+    if(Object.keys(legacy).length){
+      counts=legacy;
+      localStorage.setItem(STORAGE, JSON.stringify(counts));
+    }
+  }
+}catch(e){}
+let filter='all';
+const $=id=>document.getElementById(id);
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const teamLabel=t=>t==='Sonderserie'||t==='Limited Edition'?t:t;
+function save(){
+  try{localStorage.setItem(STORAGE,JSON.stringify(counts))}catch(e){alert('Speichern ist im aktuellen Browser nicht möglich. Bitte in Safari mit einer Web-Adresse öffnen.')}
+  render();
+}
+function step(id,delta){
+  const current=counts[id]||0;
+  const next=Math.max(0,Math.min(999,current+delta));
+  if(next) counts[id]=next; else delete counts[id];
+  save();
+}
+function toggle(id){ step(id,(counts[id]||0)>0?-(counts[id]||0):1); }
+function initials(name){
+  const base=(name||'').trim();
+  if(!base) return '??';
+  const cleaned=base.replace(/[^\p{L}\p{N} ]+/gu,' ').trim();
+  const parts=cleaned.split(/\s+/).filter(Boolean);
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+}
+function teamShort(team){
+  const map={'Manchester City':'Man City','Manchester United':'Man United','Paris Saint-Germain':'PSG','Bayer 04 Leverkusen':'Leverkusen','Atlético de Madrid':'Atlético','Borussia Dortmund':'Dortmund','FC Bayern München':'Bayern','FC Barcelona':'Barcelona','Real Madrid CF':'Real Madrid','SL Benfica':'Benfica','Limited Edition':'Limited Edition','Sonderserie':'Sonderserie'};
+  return map[team] || team;
+}
+function palette(card){
+  const str=(card.t+'|'+card.k);
+  let h=0; for(const ch of str) h=(h*31 + ch.charCodeAt(0))%360;
+  const h2=(h+55)%360;
+  const h3=(h+130)%360;
+  return `linear-gradient(145deg, hsl(${h} 72% 34%), hsl(${h2} 68% 22%) 55%, hsl(${h3} 72% 16%))`;
+}
+function buildFilters(){
+  for(const [id,key,label] of [['team','t'],['type','k']]){
+    const el=$(id);
+    const values=[...new Set(cards.map(c=>c[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));
+    values.forEach(val=>{
+      const o=document.createElement('option');
+      o.value=val; o.textContent=val; el.append(o);
+    });
+  }
+}
+function filteredCards(){
+  const q=$('query').value.trim().toLocaleLowerCase('de');
+  const team=$('team').value;
+  const type=$('type').value;
+  return cards.filter(c=>{
+    const n=counts[c.id]||0;
+    const hay=[c.id,c.n,c.t,c.k].join(' ').toLocaleLowerCase('de');
+    return (!q || hay.includes(q))
+      && (!team || c.t===team)
+      && (!type || c.k===type)
+      && (filter==='all' || (filter==='owned' && n>0) || (filter==='missing' && !n) || (filter==='duplicates' && n>1));
+  });
+}
+function render(){
+  const owned=cards.filter(c=>(counts[c.id]||0)>0).length;
+  $('owned').textContent=owned;
+  $('missing').textContent=cards.length-owned;
+  const percent=cards.length?Math.round(owned/cards.length*100):0;
+  $('percent').textContent=percent+' %';
+  $('progress').style.width=percent+'%';
+  $('progressLabel').textContent=`${owned} von ${cards.length} Karten`;
+  const arr=filteredCards();
+  $('resultCount').textContent=`${arr.length} Karten angezeigt`;
+  $('statusHint').textContent = filter==='duplicates' ? 'Mehrfach vorhanden' : 'Karten direkt abhaken';
+  $('grid').innerHTML = arr.length ? arr.map(card=>{
+    const n=counts[card.id]||0;
+    const player=card.n && card.n.trim() ? card.n : 'Karte '+card.id;
+    return `<article class="card ${n?'owned':''}" style="--cardbg:${palette(card)}">
+      <div class="corner-check">✓</div>
+      <div class="card-head">
+        <div class="badge">${escapeHTML(card.k)}</div>
+        <div class="num">#${escapeHTML(card.id)}</div>
+      </div>
+      <div class="art">
+        <div class="silhouette"></div>
+        <div class="initials">${escapeHTML(initials(player))}</div>
+        <div class="teammark"><span>Verein</span>${escapeHTML(teamShort(teamLabel(card.t)))}</div>
+      </div>
+      <div class="card-body">
+        <div class="player">${escapeHTML(player)}</div>
+        <div class="meta"><span>${escapeHTML(card.t)}</span><span class="dot"></span><span>${escapeHTML(card.k)}</span></div>
+        <div class="actions">
+          <button class="toggle" data-id="${escapeHTML(card.id)}" data-act="toggle">${n?'Vorhanden ✓':'Abhaken'}</button>
+          <div class="qty">
+            <button aria-label="Anzahl verringern" data-id="${escapeHTML(card.id)}" data-act="minus">−</button>
+            <output>${n}</output>
+            <button aria-label="Anzahl erhöhen" data-id="${escapeHTML(card.id)}" data-act="plus">+</button>
+          </div>
+        </div>
+      </div>
+    </article>`;
+  }).join('') : '<div class="empty">Keine passenden Karten gefunden.</div>';
+}
+$('grid').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-act]');
+  if(!btn) return;
+  const id=btn.dataset.id;
+  const act=btn.dataset.act;
+  if(act==='plus') step(id,1);
+  else if(act==='minus') step(id,-1);
+  else toggle(id);
+});
+$('query').addEventListener('input',render);
+$('team').addEventListener('change',render);
+$('type').addEventListener('change',render);
+document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+  filter=btn.dataset.filter;
+  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active', b===btn));
+  render();
+}));
+function download(filename,text,type){
+  const a=document.createElement('a');
+  const url=URL.createObjectURL(new Blob([text],{type}));
+  a.href=url; a.download=filename; document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+$('backup').onclick=()=>download('match-attax-sammlung-26-27.json',JSON.stringify({edition:'Match Attax 2026/27',counts,exported:new Date().toISOString()},null,2),'application/json');
+$('restore').onclick=()=>$('file').click();
+$('file').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const raw=await f.text(); let obj;
+    if(f.name.endsWith('.json')){ const data=JSON.parse(raw); obj=data.counts||data; }
+    else { obj={}; for(const line of raw.split(/\r?\n/)){ const [id,count]=line.split(/[;,	]/); if(id&&Number(count)>0)obj[id.trim()]=Number(count); } }
+    const clean={};
+    for(const c of cards){ const n=Number(obj[c.id]); if(Number.isFinite(n)&&n>0) clean[c.id]=Math.min(999,Math.floor(n)); }
+    if(!confirm('Sammlung mit '+Object.keys(clean).length+' vorhandenen Kartentypen importieren? Der bisherige Stand wird überschrieben.')) return;
+    counts=clean; save();
+  }catch(err){ alert('Datei konnte nicht gelesen werden.'); }
+  e.target.value='';
+};
+$('help').onclick=()=>$('modal').showModal();
+$('close').onclick=()=>$('modal').close();
+$('reset').onclick=()=>{ if(confirm('Wirklich alle Häkchen und Mengen löschen?')){ counts={}; save(); $('modal').close(); } };
+buildFilters();
+render();
+</script>
+</body>
+</html>
