@@ -229,6 +229,19 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
 .design-nitro{--cardbg:linear-gradient(135deg,#050506,#232330,#0b0b0f);--artbg:radial-gradient(circle at 75% 40%,#4c4b56,#070709 60%);--pattern:repeating-linear-gradient(155deg,transparent 0 16px,#ffffff23 17px 18px);--accent:#eee;--border:#777}
 .design-festive{--cardbg:linear-gradient(135deg,#074b4b,#1a9d8b,#8c272c);--artbg:radial-gradient(circle at 53% 48%,#e9fffe,#419dba 42%,#0a485d 75%);--pattern:radial-gradient(circle at 20% 20%,#fff 0 2px,transparent 3px),radial-gradient(circle at 76% 65%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 79%,#fff 0 2px,transparent 3px);--accent:#f3ffff}
 .design-tactic{--cardbg:linear-gradient(135deg,#176e4c,#0d403c,#091b37);--artbg:repeating-linear-gradient(0deg,#217452 0 21px,#14613b 21px 42px);--pattern:linear-gradient(90deg,transparent 49%,#ffffff55 50%,transparent 51%),radial-gradient(circle at 50% 50%,transparent 0 19px,#ffffff55 20px 21px,transparent 22px);--accent:#dffff0}
+/* V8: Vereinswappen rechts oben, über dem Kartensymbol */
+.card .club-crest{
+  position:absolute;top:8px;right:7px;width:40px;height:40px;z-index:4;
+  display:flex;justify-content:center;align-items:center;
+  border-radius:8px;background:#0c103c55;
+  border:1px solid #ffffff42;backdrop-filter:blur(3px);
+  overflow:hidden;box-shadow:0 2px 7px #0005;
+}
+.card .club-crest img{display:block;max-width:34px;max-height:34px;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 1px 2px #0005)}
+.card .club-crest .crest-fallback{font-size:11px;color:#fff;font-weight:900;letter-spacing:-.4px}
+.card .teammark.has-club{display:none}
+.card .art .design-mark{right:7px}
+@media(max-width:370px){.card .club-crest{width:36px;height:36px}.card .club-crest img{max-width:31px;max-height:31px}}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 </style>
@@ -279,7 +292,7 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
   <p>Jede Karte wird als stilisierte Vorschau angezeigt. Mit <b>Vorhanden</b> hakst du sie ab. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
   <p>Die App nutzt nur die Daten auf diesem iPhone. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
   <p>Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du die Karten selbst ergänzen. Die Angaben bleiben lokal gespeichert und werden mit exportiert.</p>
-  <p>Die Kartengrafiken sind eigenständige, von den Serienarten inspirierte Illustrationen ohne Originalbilder. Die Silhouette ist absichtlich bei jeder Karte gleich. Eine Internetverbindung ist für die Grafiken nicht nötig.</p>
+  <p>Die Kartengrafiken sind eigenständige, von den Serienarten inspirierte Illustrationen ohne Originalbilder. Die Silhouette ist absichtlich bei jeder Karte gleich. Für die Vereinswappen wird beim ersten Aufruf eine Internetverbindung benötigt. Ohne gefundenes Wappen erscheint ein Vereins-Kürzel.</p>
   <button id="close" class="ok">Verstanden</button>
   <button id="reset" class="secondary">Sammlung zurücksetzen</button>
 </dialog>
@@ -356,6 +369,105 @@ function designKind(k){
   'Legends':'legends','Black Nitro':'nitro','Festive Edition':'festive','Taktikkarte':'tactic'};
  return designs[k]||'base';
 }
+// Offizielle Vereinswappen (sofern bei Wikimedia hinterlegt).
+// Abruf: Wikidata-Clubobjekt mit P154 (Logo) bzw. P94 (Wappen).
+// Keine Bilder von Spielern und keine unsichere Text-Bild-Suche.
+const CLUB_PAGES={
+ 'AC Mailand':'AC Milan','Arsenal':'Arsenal F.C.','Aston Villa':'Aston Villa F.C.',
+ 'Atalanta':'Atalanta BC','Atlético Madrid':'Atlético Madrid','Barcelona':'FC Barcelona',
+ 'Bayern München':'FC Bayern Munich','Benfica':'S.L. Benfica',
+ 'Bournemouth':'AFC Bournemouth','Dortmund':'Borussia Dortmund',
+ 'Inter Mailand':'Inter Milan','Juventus':'Juventus FC',
+ 'Leverkusen':'Bayer 04 Leverkusen','Liverpool':'Liverpool F.C.',
+ 'Manchester City':'Manchester City F.C.','Manchester United':'Manchester United F.C.',
+ 'PSV Eindhoven':'PSV Eindhoven','Paris SG':'Paris Saint-Germain F.C.',
+ 'Porto':'FC Porto','RB Leipzig':'RB Leipzig','Real Betis':'Real Betis',
+ 'Real Madrid':'Real Madrid CF','Salzburg':'FC Red Bull Salzburg',
+ 'Stuttgart':'VfB Stuttgart','Villarreal':'Villarreal CF'
+};
+const CLUB_CACHE_KEY='match-attax-club-crests-v1';
+let clubCrests={};
+try{clubCrests=JSON.parse(localStorage.getItem(CLUB_CACHE_KEY)||'{}')||{}}catch(e){}
+const CLUB_NAMES=new Set(Object.keys(CLUB_PAGES));
+function hasClub(team){return CLUB_NAMES.has(team)}
+function crestFallback(name){
+ return name.replace(/^(FC|AC|RB|PSV)\s+/i,'').split(/\s+/).map(w=>w[0]||'').slice(0,3).join('').toUpperCase();
+}
+function crestMarkup(team){
+ const label=escapeHTML(team);
+ const initials=escapeHTML(crestFallback(team));
+ const link=clubCrests[team];
+ return `<div class="club-crest" data-team="${label}" title="${label}" aria-label="Wappen: ${label}">
+  <span class="crest-fallback" ${link?'hidden':''}>${initials}</span>
+  ${link?`<img src="${escapeHTML(link)}" alt="${label}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove();this.parentNode.querySelector('.crest-fallback').hidden=false">`:''}
+ </div>`;
+}
+
+let logoLoading=false;
+async function loadClubCrests(){
+ if(logoLoading) return;
+ logoLoading=true;
+ const entries=Object.entries(CLUB_PAGES).filter(([team])=>!clubCrests[team]);
+ if(!entries.length) return;
+ const titles=entries.map(([,title])=>title).join('|');
+ let changed=false;
+ // Zuerst die von Wikidata explizit als Wappen/Logo klassifizierten Bilder.
+ try{
+  const url='https://www.wikidata.org/w/api.php?action=wbgetentities&sites=enwiki&titles='+encodeURIComponent(titles)+'&props=claims%7Csitelinks&format=json&origin=*';
+  const response=await fetch(url,{mode:'cors'});
+  if(!response.ok) throw new Error('Wikidata '+response.status);
+  const result=await response.json();
+  const byPage={};
+  for(const entity of Object.values(result.entities||{})){
+   const title=entity.sitelinks?.enwiki?.title;
+   if(title) byPage[title.replace(/_/g,' ')]=entity;
+  }
+  for(const [team,title] of entries){
+   const entity=byPage[title.replace(/_/g,' ')];
+   const claim=(entity?.claims?.P154||entity?.claims?.P94||[])
+     .find(x=>typeof x?.mainsnak?.datavalue?.value==='string');
+   const filename=claim?.mainsnak?.datavalue?.value;
+   if(filename&&!/\.(?:pdf|tif|tiff)$/i.test(filename)){
+    clubCrests[team]='https://commons.wikimedia.org/wiki/Special:Redirect/file/'+encodeURIComponent(filename)+'?width=110';
+    changed=true;
+   }
+  }
+ }catch(e){console.warn('Wikidata zurzeit nicht erreichbar',e)}
+ // Fallback: das Artikelbild der jeweiligen Vereinsseite.
+ // Ohne passendes Bild bleibt das Vereins-Kürzel, nie ein zufällig geratenes Logo.
+ const missing=entries.filter(([team])=>!clubCrests[team]);
+ if(missing.length){
+  try{
+   const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&pithumbsize=120&titles='+encodeURIComponent(missing.map(([,title])=>title).join('|'));
+   const response=await fetch(url,{mode:'cors'});
+   if(!response.ok) throw new Error('Wikipedia '+response.status);
+   const data=await response.json();
+   const images=Object.values(data.query?.pages||{});
+   const normalize=t=>t.toLowerCase().replace(/[_\s]+/g,' ').replace(/\./g,'').trim();
+   for(const [team,title] of missing){
+    const match=images.find(page=>normalize(page.title||'')===normalize(title));
+    const src=match?.thumbnail?.source;
+    if(src && /^https:\/\//.test(src)){clubCrests[team]=src;changed=true}
+   }
+  }catch(e){console.warn('Wikipedia-Vereinsbilder nicht erreichbar',e)}
+ }
+ if(changed){
+  try{localStorage.setItem(CLUB_CACHE_KEY,JSON.stringify(clubCrests))}catch(e){}
+  document.querySelectorAll('.club-crest[data-team]').forEach(el=>{
+   const team=el.dataset.team;
+   const link=clubCrests[team];
+   if(link&&!el.querySelector('img')){
+    const img=document.createElement('img');
+    img.alt=team;img.loading='lazy';img.referrerPolicy='no-referrer';
+    img.onerror=()=>{img.remove();el.querySelector('.crest-fallback')?.removeAttribute('hidden')};
+    const fallback=el.querySelector('.crest-fallback');
+    if(fallback) fallback.hidden=true;
+    el.append(img);img.src=link;
+   }
+  });
+ }
+}
+
 function markFor(k){
  const m={'Infinity':'∞','WHOOSH!':'✹','Enigma':'◐','Mystical':'✧','Genuine Genius':'✦',
  'Goaliaths':'◎','Fortress':'⬡','Power Play':'ϟ','Man of the Match':'★',
@@ -413,7 +525,8 @@ function render(){
         <div class="design-geometry" aria-hidden="true"></div>
         <div class="silhouette"></div>
         <div class="initials">${escapeHTML(initials(player))}</div>
-        <div class="teammark"><span>Verein</span>${escapeHTML(teamShort(teamLabel(card.t)))}</div>
+        <div class="teammark ${hasClub(card.t)?'has-club':''}"><span>Verein</span>${escapeHTML(teamShort(teamLabel(card.t)))}</div>
+        ${hasClub(card.t)?crestMarkup(card.t):''}
         <span class="design-mark" aria-hidden="true">${escapeHTML(markFor(card.k))}</span>
       </div>
       <div class="card-body">
@@ -509,6 +622,7 @@ $('close').onclick=()=>$('modal').close();
 $('reset').onclick=()=>{ if(confirm('Wirklich alle Häkchen und Mengen löschen?')){ counts={}; save(); $('modal').close(); } };
 buildFilters();
 render();
+loadClubCrests();
 </script>
 </body>
 </html>
