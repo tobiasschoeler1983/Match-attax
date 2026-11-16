@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#07111f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Match Attax 26/27</title>
+<title>Match Attax 26/27 · V15</title>
 <style>
 :root{
   color-scheme: dark;
@@ -283,6 +283,17 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 #autoScanResult{color:#d5fb69!important;min-height:20px}
 
 
+/* V15: klarer Scan-Workflow, gut erreichbare Hauptaktion */
+#autoScanDialog .scan-name-label{display:block;font-size:13px;font-weight:750;margin:15px 0 7px;color:#f2f6fa}
+#autoScanDialog .scan-name-label small{font-weight:400;color:#a2b2c8}
+#autoScanName{width:100%;border:1px solid #8293a9;border-radius:14px;padding:14px 13px;background:#26334a;color:white;font-size:16px;outline:0}
+#autoScanName:focus,#editPlayerName:focus{border-color:#d5fb69;box-shadow:0 0 0 3px #d5fb6933}
+#autoScanDialog .auto-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#autoScanDialog .auto-actions button{min-height:44px}
+#autoScanDialog .auto-actions .main-add{grid-column:1 / -1;grid-row:1;min-height:60px;font-size:18px;font-weight:900;border-radius:17px}
+#autoScanDialog .auto-actions .main-add:disabled{background:#42505a;color:#cbd3d9;opacity:.7}
+.scan-dupe{padding:13px 14px!important;border:1px solid #ffcc76aa;background:#4c321c;border-radius:14px;color:#fff0cb!important;font-size:14px!important;font-weight:650}
+.scan-dupe[hidden]{display:none}
 /* V13: Position der Karte mit verschiebbaren Ecken, Nummer in Originalauflösung lesen */
 #autoScanCanvas{width:100%;height:auto;display:block;max-height:46vh;object-fit:contain;touch-action:none;border-radius:12px;background:#060c16;margin:12px auto;cursor:crosshair}
 #autoScanCanvas[hidden],#autoScanCropPreview[hidden],#autoScanCropTools[hidden]{display:none!important}
@@ -357,11 +368,14 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
   <div id="autoScanCropTools" hidden><span class="crop-help">Die grüne Kontur prüfen. Gelb zeigt die Nummernzone unter dem Topps-Logo. Bei Bedarf Ecken verschieben.</span><button type="button" id="autoScanRetry" class="crop-retry">Nummer erneut lesen</button></div>
   <canvas id="autoScanCropPreview" aria-label="Vergrößerter Ausschnitt oben rechts" hidden></canvas>
   <p id="autoScanResult" role="status">Noch kein Foto aufgenommen.</p>
-  <label class="auto-check-option"><input id="autoScanInstant" type="checkbox" checked> Bei eindeutig erkanntem Spieler und Kartennummer automatisch abhaken</label><label for="autoScanSelect">Erkannte Karte oder Nummer manuell auswählen</label>
-  <select id="autoScanSelect"><option value="">Bitte erst eine Karte fotografieren</option></select>
+  <label class="auto-check-option"><input id="autoScanInstant" type="checkbox"> Bei eindeutig erkanntem Spieler und Kartennummer automatisch abhaken</label><label for="autoScanSelect">Erkannte Karte oder Nummer manuell auswählen</label>
+  <select id="autoScanSelect" aria-label="Kartennummer zuordnen"><option value="">Bitte erst eine Karte fotografieren</option></select>
+  <label class="scan-name-label" for="autoScanName">Spielername ergänzen oder korrigieren <small>(optional)</small></label>
+  <input id="autoScanName" type="text" maxlength="100" placeholder="Spielername eingeben" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
+  <p id="autoScanDuplicate" class="scan-dupe" role="alert" hidden></p>
   <div class="auto-actions">
    <button type="button" id="autoScanChoose" class="primary">Karte fotografieren</button>
-   <button type="button" id="autoScanConfirm" class="primary" disabled>Karte hinzufügen</button>
+   <button type="button" id="autoScanConfirm" class="primary main-add" disabled>Karte hinzufügen</button>
    <button type="button" id="autoScanClose">Schließen</button>
   </div>
 </dialog>
@@ -634,7 +648,9 @@ function openNameEditor(id){
   $('editTitle').textContent='Karte #'+id+' bearbeiten';
   $('editRemove').hidden=!Object.prototype.hasOwnProperty.call(customNames,id);
   $('editDialog').showModal();
-  // Kein automatisches Fokussieren: verhindert das sofortige Öffnen der iOS-Tastatur.
+  $('editPlayerName').focus({preventScroll:true});
+  // iOS kann den programmatischen Tastatur-Aufruf verweigern, das Feld bleibt fokussiert.
+  requestAnimationFrame(()=>{if($('editDialog').open && document.activeElement!==$('editPlayerName')) $('editPlayerName').focus({preventScroll:true});});
 }
 $('editCancel').onclick=()=>$('editDialog').close();
 $('editForm').addEventListener('submit',e=>{
@@ -801,6 +817,41 @@ function autoSetOptions(recommended=[]){
  }
  if(recommended.length)el.value=recommended[0];
  $('autoScanConfirm').disabled=!el.value;
+ scanUpdateSelection();
+}
+let scanSelectedNameId='';
+function scanUpdateSelection(){
+ const id=$('autoScanSelect').value;
+ const card=cards.find(c=>c.id===id);
+ const n=card?(counts[id]||0):0;
+ const notice=$('autoScanDuplicate');
+ notice.hidden=!(card&&n>0);
+ if(card&&n>0)notice.textContent='⚠ Diese Karte ist bereits '+n+'× vorhanden. Hinzufügen erhöht die Anzahl auf '+(n+1)+'.';
+ if(scanSelectedNameId!==id){
+   $('autoScanName').value=card?(cardName(card)||''):'';
+   scanSelectedNameId=id;
+ }
+ $('autoScanConfirm').textContent=n>0?'Weitere Karte hinzufügen':'Karte hinzufügen';
+}
+function scanFinishAdd(id){
+ const card=cards.find(c=>c.id===id);if(!card)return;
+ const oldCount=counts[id]||0;
+ if(oldCount && !confirm('Karte #'+id+' ist bereits '+oldCount+'× vorhanden. Als weiteres Exemplar hinzufügen?'))return;
+ const newName=$('autoScanName').value.trim().replace(/\s+/g,' ').slice(0,100);
+ // Namen nur speichern, wenn das Feld tatsächlich ausgefüllt und verändert wurde.
+ if(newName && newName!==cardName(card)){
+  const old=Object.prototype.hasOwnProperty.call(customNames,id)?customNames[id]:undefined;
+  customNames[id]=newName;
+  if(!saveNames()){
+   if(old===undefined)delete customNames[id]; else customNames[id]=old;
+   $('autoScanResult').textContent='Name konnte nicht gespeichert werden. Bitte erneut versuchen.';
+   return;
+  }
+ }
+ step(id,1);clearSearchAfterChoice();
+ $('autoScanResult').textContent='✓ '+autoLabel(card)+(oldCount?' · Jetzt '+(oldCount+1)+' Exemplare.':' · Neu in deiner Sammlung.');
+ $('autoScanSelect').value='';scanSelectedNameId='';$('autoScanName').value='';
+ $('autoScanConfirm').disabled=true;scanUpdateSelection();
 }
 function autoRankMatches(raw){
  const text=raw.toLocaleUpperCase('de');
@@ -1001,25 +1052,36 @@ async function scanReadCorner(){
  }catch(err){$('autoScanResult').textContent='Texterkennung fehlgeschlagen: '+(err.message||'Unbekannter Fehler');}
  finally{scanBusy=false;}
 }
-$('startAutoScan').onclick=()=>{
+function scanOpenDialog(){
+ if(!$('autoScanDialog').open)$('autoScanDialog').showModal();
+ // Eingabefeld bei einem geöffneten Dialog sofort aktivieren.
+ $('autoScanName').focus({preventScroll:true});
+}
+function scanResetState(){
  $('autoScanResult').textContent='Karte fotografieren, dann grüne Kontur prüfen.';
  scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
- autoSetOptions();$('autoScanDialog').showModal();
+ scanSelectedNameId='';$('autoScanName').value='';
+ autoSetOptions();scanUpdateSelection();
+}
+$('startAutoScan').onclick=()=>{
+ scanResetState();
+ // iOS: File-/Kamera-Auswahl direkt im echten Tap-Handler starten.
+ $('autoScanInput').click();
 };
-$('autoScanChoose').onclick=()=>$('autoScanInput').click();
+$('autoScanChoose').onclick=()=>{$('autoScanInput').click();};
 $('autoScanRetry').onclick=scanReadCorner;
 $('autoScanClose').onclick=()=>{
  $('autoScanDialog').close();scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
  if(autoObjectUrl){URL.revokeObjectURL(autoObjectUrl);autoObjectUrl=null;}
 };
-$('autoScanSelect').onchange=()=>{$('autoScanConfirm').disabled=!$('autoScanSelect').value;};
+$('autoScanSelect').onchange=()=>{$('autoScanConfirm').disabled=!$('autoScanSelect').value;scanUpdateSelection();};
 $('autoScanConfirm').onclick=()=>{
  const id=$('autoScanSelect').value;if(!cards.some(c=>c.id===id))return;
- step(id,1);clearSearchAfterChoice();$('autoScanResult').textContent='✓ '+autoLabel(cards.find(c=>c.id===id))+' hinzugefügt.';
- $('autoScanSelect').value='';$('autoScanConfirm').disabled=true;
+ scanFinishAdd(id);
 };
 $('autoScanInput').onchange=async e=>{
  const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ scanOpenDialog();
  $('autoScanResult').textContent='Suche Kartenränder …';
  $('autoScanConfirm').disabled=true;
  try{
@@ -1032,6 +1094,7 @@ $('autoScanInput').onchange=async e=>{
  }catch(err){$('autoScanResult').textContent='Foto konnte nicht geladen werden: '+(err.message||'Unbekannter Fehler');}
 };
 
+$('autoScanInstant').checked=false;
 buildFilters();
 fillMissingFilters();
 render();
