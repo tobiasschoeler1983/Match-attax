@@ -167,17 +167,6 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
 .player{min-height:32px;margin-bottom:2px}
 .meta{min-height:22px}
 
-/* V4: Porträts aus Wikimedia, Karten auch ohne Bild benutzbar */
-.art{position:relative;isolation:isolate;overflow:hidden;cursor:default}
-.art.has-photo{background:linear-gradient(125deg,#a92354,#421180)}
-.art img.player-photo{position:absolute;top:0;left:0;right:auto;bottom:0;z-index:1;width:55%;height:100%;object-fit:cover;object-position:50% 24%;display:block;filter:saturate(1.12) contrast(1.04);border-right:1px solid #ffffff40}
-.art.has-photo::after{content:"";position:absolute;top:0;left:0;bottom:0;width:55%;z-index:2;pointer-events:none;background:linear-gradient(0deg,rgba(28,6,62,.38),transparent 45%)}
-.art.has-photo .initials,.art.has-photo .silhouette,.art.has-photo .photo-fallback{display:none}
-.art.has-photo .teammark{display:block;position:relative;z-index:3;margin-left:auto;max-width:43%;text-align:right}
-.photo-fallback{position:absolute;right:6px;bottom:7px;z-index:2;max-width:60%;font-size:9px;font-weight:700;text-align:right;line-height:1.2;padding:4px 6px;border-radius:5px;background:#24104fbc;color:#fbe7ff}
-.art.has-photo .photo-credit{position:absolute;z-index:3;left:3px;bottom:3px;right:auto;max-width:53%;font-size:8px;font-weight:800;color:white;background:#250b55c9;text-decoration:none;padding:3px 4px;border-radius:4px}
-.art.has-photo .photo-credit:focus-visible{outline:2px solid white}
-
 /* Eingabefeld für selbst zugeordnete Spielernamen */
 .edit-name{display:block;width:100%;margin-top:6px;border:1px solid #ffffff55;background:#220a50dd;color:#fff;border-radius:9px;padding:7px 8px;font-weight:750;font-size:11px;cursor:pointer;text-align:center}
 .edit-name:focus-visible{outline:2px solid #fff}
@@ -185,6 +174,63 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
 #editDialog label{display:block;font-weight:700;font-size:13px;margin-top:14px}
 #editDialog .dialog-actions{display:flex;gap:7px;flex-wrap:wrap}
 #editDialog .dialog-actions button{flex:1}
+
+/* VERSION 7: Seriengrafiken. Bewusst keine Spielerfotos / Netzwerk-Abfragen. */
+.card{--ink:#fff;--accent:#eecbff;--cardbg:linear-gradient(145deg,#4e2d87,#1b174d);--artbg:linear-gradient(125deg,#7e4cb5,#2c1f6e);--pattern:repeating-linear-gradient(130deg,transparent 0 17px,#ffffff13 18px 19px);--border:#ffffff66;--sil:#e9d9ff}
+.card{background:var(--cardbg);border:2px solid var(--border);border-radius:15px;box-shadow:0 12px 26px #09001b6e,inset 0 0 0 2px #ffffff17;}
+.card::before{inset:0;border-radius:inherit;width:auto;height:auto;background:linear-gradient(132deg,#ffffff32,transparent 24% 70%,#ffffff1d);transform:none;pointer-events:none;}
+.card::after{display:none}
+.card-head{padding:10px 9px 0}
+.card .badge{border-radius:3px;background:#110c2aa8;color:var(--accent);text-shadow:none;font-size:9px;letter-spacing:.3px;border:1px solid #ffffff59}
+.card .num{border-radius:4px;color:#fff;background:#10091c99;font-size:11px}
+.card .art{margin:8px 8px 0;height:122px;border-radius:8px;background:var(--artbg);border:1px solid #ffffff78;isolation:isolate;padding:8px;overflow:hidden}
+.card .art::before{content:"";position:absolute;inset:0;width:auto;height:auto;border-radius:0;transform:none;background:var(--pattern);opacity:.95;z-index:-1}
+.card .art::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,#ffffff26,transparent 35%,transparent 73%,#ffffff1c);z-index:2}
+.card .design-geometry{position:absolute;left:8%;top:12%;width:78%;height:120%;border:3px solid #ffffff35;transform:rotate(-20deg) skewY(8deg);box-shadow:0 0 0 7px #ffffff0d,inset 0 0 25px #ffffff19;z-index:-1}
+.card .silhouette{left:8px;bottom:0;height:107px;width:81px;opacity:.46;border-radius:0;background:linear-gradient(180deg,#fff,var(--sil));clip-path:polygon(46% 1%,57% 3%,67% 11%,69% 23%,64% 33%,78% 41%,94% 57%,100% 100%,0 100%,7% 57%,24% 41%,33% 33%,28% 20%,32% 9%)}
+.card .initials{font-size:28px;letter-spacing:-1px;font-weight:950;position:absolute;left:13px;bottom:6px;opacity:.95;color:#fff;text-shadow:1px 2px 5px #120a32,0 0 8px #100a29}
+.card .teammark{position:absolute;right:8px;top:13px;max-width:48%;text-align:right;font-size:10px;color:#fff;text-shadow:0 2px 5px #000}
+.card .teammark span{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#ffffffb8}
+.card .design-mark{position:absolute;right:7px;bottom:1px;font-size:35px;font-weight:1000;font-style:italic;line-height:1;color:var(--accent);text-shadow:2px 2px 0 #1c0839,0 0 14px var(--accent);opacity:.85}
+.card .card-body{padding:10px 8px 9px;background:linear-gradient(180deg,transparent,#12091e66)}
+.card .player{font-size:13px;min-height:30px;letter-spacing:.1px}
+.card .meta{color:#ffffffd8;font-size:10px}
+.card .edit-name{border-color:#ffffff54;background:#0005}
+.card.owned{border-color:#72f7c9;box-shadow:0 0 0 2px #72f7c934,0 10px 30px #0008}
+/* Grundkarten: schmale diagonale Teamstreifen */
+.design-base{--cardbg:linear-gradient(137deg,#0d3461,#124e82 44%,#101c4c);--artbg:linear-gradient(142deg,#218ad5,#133b70);--pattern:repeating-linear-gradient(122deg,#ffffff0d 0 7px,#18396644 7px 14px);--accent:#b8eaff;--sil:#a9d5fa}
+.design-leader{--cardbg:linear-gradient(140deg,#1d2351,#394caa,#171341);--artbg:linear-gradient(115deg,#3542ac,#151c53);--pattern:repeating-linear-gradient(145deg,transparent 0 22px,#e4e0ff52 23px 25px);--accent:#ffeaa5;--sil:#c5c5ff}
+.design-debut{--cardbg:linear-gradient(132deg,#1881b6,#17257e,#0e1447);--artbg:linear-gradient(135deg,#0fd9d0,#4a48ae 58%,#0c255c);--pattern:repeating-linear-gradient(-45deg,transparent 0 15px,#ffffff47 16px 19px);--accent:#adfff4;--sil:#affffa}
+/* Infinity: violett-blau, kristallines Holo-Raster und Unendlichkeitszeichen */
+.design-infinity{--cardbg:conic-gradient(from 10deg,#1d2065,#8c3fac,#2156aa,#131a53,#b453b7,#1d2065);--artbg:conic-gradient(from 180deg,#6b39b6,#1f79cb,#ed83d1,#282968,#44cdd4,#6b39b6);--pattern:repeating-conic-gradient(from 45deg at 50% 45%,#ffffff50 0deg 4deg,transparent 4deg 23deg);--accent:#fbd5ff;--border:#e0b8ffb8;--sil:#dcc9ff}
+.design-infinity .design-mark{font-size:48px;bottom:-3px}
+/* Foils */
+.design-motm{--cardbg:linear-gradient(130deg,#ecae35,#e24d25,#8c1635);--artbg:linear-gradient(140deg,#ffeb8c,#ff6344 55%,#80224b);--pattern:repeating-linear-gradient(-35deg,transparent 0 17px,#fff9cc80 18px 22px);--accent:#fff2a3;--border:#ffd779}
+.design-power{--cardbg:linear-gradient(140deg,#1e174c,#713b94,#cb227c);--artbg:linear-gradient(130deg,#612aad,#e5589f);--pattern:repeating-linear-gradient(25deg,transparent 0 12px,#ffffff56 13px 14px);--accent:#ffcaf0;--sil:#fad5ff}
+.design-goal{--cardbg:linear-gradient(125deg,#095655,#14afa3,#06424d);--artbg:radial-gradient(circle at 75% 25%,#a5ffe4,#1bbaa4 42%,#0c5a71);--pattern:repeating-radial-gradient(circle at 63% 44%,transparent 0 13px,#ecfff488 14px 16px);--accent:#d0fff5;--sil:#e0fff0}
+.design-fortress{--cardbg:linear-gradient(130deg,#172744,#356489,#111d3e);--artbg:linear-gradient(140deg,#276c9b,#153553);--pattern:repeating-linear-gradient(90deg,#ffffff34 0 4px,transparent 4px 27px);--accent:#c6efff;--sil:#d8f2ff}
+.design-slick{--cardbg:linear-gradient(135deg,#16161f,#797b92,#2c244c);--artbg:linear-gradient(135deg,#a8aec9,#41375e,#161b2e);--pattern:repeating-linear-gradient(115deg,transparent 0 12px,#ffffff55 13px 14px);--accent:#f0f1ff;--sil:#e6e5ef}
+.design-genius{--cardbg:linear-gradient(145deg,#173b49,#26304f,#162945);--artbg:linear-gradient(130deg,#2f756f,#162844 70%);--pattern:repeating-linear-gradient(0deg,transparent 0 16px,#ffffff24 17px 18px),repeating-linear-gradient(90deg,transparent 0 25px,#ffffff19 26px 27px);--accent:#d8f29f;--sil:#dcefff}
+.design-master{--cardbg:linear-gradient(125deg,#322776,#ae49c2,#28184d);--artbg:radial-gradient(circle at 60% 35%,#c888ff,#3f237e);--pattern:repeating-conic-gradient(from 20deg,#ffffff24 0 5deg,transparent 5deg 30deg);--accent:#ffe6fe}
+.design-supreme{--cardbg:linear-gradient(145deg,#191c43,#8d79c0,#211b51);--artbg:conic-gradient(from 200deg,#9b80d2,#eeeeff,#4f4795,#8c69be);--pattern:repeating-linear-gradient(125deg,transparent 0 8px,#ffffff72 9px 10px);--accent:#fffbc1}
+/* Chase-Sets */
+.design-hundred{--cardbg:linear-gradient(125deg,#191c38,#b8a259,#24243e);--artbg:radial-gradient(circle at 60% 45%,#f9e09b,#7b6839 48%,#1a213c);--pattern:repeating-conic-gradient(#ffffff27 0deg 7deg,transparent 7deg 30deg);--accent:#fff1b2;--border:#eacf83}
+.design-unbeatable{--cardbg:linear-gradient(120deg,#4f264f,#d8b765,#1d1a43);--artbg:radial-gradient(circle at 40% 40%,#ffe3a4,#763d88 65%,#281640);--pattern:repeating-conic-gradient(#ffffff35 0 9deg,transparent 9deg 26deg);--accent:#fff2a8;--border:#ffdf9b}
+.design-whoosh{--cardbg:linear-gradient(140deg,#17278a,#ffca16 42%,#cc183b 79%,#102166);--artbg:linear-gradient(125deg,#ffd737 0 32%,#1587f2 32% 60%,#e62748 60%);--pattern:repeating-conic-gradient(from 0deg at 78% 45%,#fff7 0 5deg,transparent 6deg 24deg);--accent:#fff200;--border:#fff576}
+.design-whoosh .design-mark{font-size:54px;transform:rotate(-19deg)}
+.design-enigma{--cardbg:linear-gradient(100deg,#18181e 0 50%,#84192c 50% 100%);--artbg:linear-gradient(100deg,#2c2c36 0 49%,#a8243b 49% 100%);--pattern:repeating-linear-gradient(-40deg,transparent 0 20px,#ffffff22 21px 23px);--accent:#ff4b67;--border:#ff8290}
+.design-mystical{--cardbg:conic-gradient(from 60deg,#5a1263,#bd26bd,#195ab5,#16165a,#5a1263);--artbg:radial-gradient(circle at 45% 43%,#c85dec,#462db4 38%,#171958 75%);--pattern:repeating-conic-gradient(from 0deg,#ff89ef3a 0 6deg,transparent 7deg 29deg);--accent:#ffb8f9;--border:#e8a1ff}
+.design-mystical .design-mark{font-size:55px}
+/* Sondereditionen */
+.design-anniversary{--cardbg:linear-gradient(120deg,#17152d,#7d4ba8,#b58b48);--artbg:linear-gradient(135deg,#d3b777,#482d7c,#d8b77d);--pattern:repeating-linear-gradient(50deg,transparent 0 16px,#ffffff38 17px 19px);--accent:#ffe4a2;--border:#d8bb80}
+.design-heroes{--cardbg:linear-gradient(140deg,#111d68,#bf1e55,#361381);--artbg:linear-gradient(30deg,#e6364a,#163d9a 60%,#ffcc24);--pattern:repeating-conic-gradient(from 18deg at 80% 36%,transparent 0 22deg,#ffffff4a 24deg 26deg);--accent:#ffdf54}
+.design-hits{--cardbg:linear-gradient(130deg,#d4399e,#69196b,#1c287c);--artbg:linear-gradient(125deg,#e74cba,#9f39d4,#3932a1);--pattern:repeating-linear-gradient(0deg,transparent 0 15px,#ffffff64 16px 17px);--accent:#ffe892}
+.design-legends{--cardbg:linear-gradient(125deg,#382328,#ad7844,#2b193e);--artbg:linear-gradient(120deg,#ba985c,#4c244a);--pattern:repeating-linear-gradient(45deg,transparent 0 22px,#ffffff2a 24px 25px);--accent:#ffe9b7;--border:#d4ad65}
+.design-nitro{--cardbg:linear-gradient(135deg,#050506,#232330,#0b0b0f);--artbg:radial-gradient(circle at 75% 40%,#4c4b56,#070709 60%);--pattern:repeating-linear-gradient(155deg,transparent 0 16px,#ffffff23 17px 18px);--accent:#eee;--border:#777}
+.design-festive{--cardbg:linear-gradient(135deg,#074b4b,#1a9d8b,#8c272c);--artbg:radial-gradient(circle at 53% 48%,#e9fffe,#419dba 42%,#0a485d 75%);--pattern:radial-gradient(circle at 20% 20%,#fff 0 2px,transparent 3px),radial-gradient(circle at 76% 65%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 79%,#fff 0 2px,transparent 3px);--accent:#f3ffff}
+.design-tactic{--cardbg:linear-gradient(135deg,#176e4c,#0d403c,#091b37);--artbg:repeating-linear-gradient(0deg,#217452 0 21px,#14613b 21px 42px);--pattern:linear-gradient(90deg,transparent 49%,#ffffff55 50%,transparent 51%),radial-gradient(circle at 50% 50%,transparent 0 19px,#ffffff55 20px 21px,transparent 22px);--accent:#dffff0}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -220,7 +266,7 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
     <button data-filter="duplicates">Doppelte</button>
   </div>
 </section>
-<div class="results"><span id="resultCount">0 Karten angezeigt</span><span id="statusHint" class="hint">Fotos werden geladen</span></div>
+<div class="results"><span id="resultCount">0 Karten angezeigt</span><span id="statusHint" class="hint">Karten direkt abhaken</span></div>
 <main id="grid" class="grid"></main>
 <div class="bottom">
   <button id="backup">Sicherung</button>
@@ -232,20 +278,20 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
   <h2>So funktioniert die Kartenansicht</h2>
   <p>Jede Karte wird als stilisierte Vorschau angezeigt. Mit <b>Vorhanden</b> hakst du sie ab. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
   <p>Die App nutzt nur die Daten auf diesem iPhone. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
-  <p><b>Neu:</b> Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du für jede Karte einen Namen hinterlegen. Danach wird automatisch ein neues Foto gesucht. Eigene Namen werden lokal gespeichert und in der Sicherung mit exportiert.</p>
-  <p>Die Spielerfotos werden aus Wikipedia/Wikimedia Commons nachgeladen. Tippe auf ein Foto, um die Quelle zu öffnen. Bilder erscheinen nur, wenn eine passende Zuordnung gefunden wird. Bei fehlenden Spielernamen oder nicht gefundenen Bildern bleibt die stilisierte Kartenillustration stehen. Eine Internetverbindung ist für neue Fotos erforderlich. Die Fotos und ihre Nutzungsbedingungen stammen von den jeweils verlinkten Quellen.</p>
+  <p>Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du die Karten selbst ergänzen. Die Angaben bleiben lokal gespeichert und werden mit exportiert.</p>
+  <p>Die Kartengrafiken sind eigenständige, von den Serienarten inspirierte Illustrationen ohne Originalbilder. Die Silhouette ist absichtlich bei jeder Karte gleich. Eine Internetverbindung ist für die Grafiken nicht nötig.</p>
   <button id="close" class="ok">Verstanden</button>
   <button id="reset" class="secondary">Sammlung zurücksetzen</button>
 </dialog>
 <dialog id="editDialog" aria-labelledby="editTitle">
   <h2 id="editTitle">Spieler zuordnen</h2>
-  <p id="editHint">Trage den vollständigen Namen des Fußballers ein. Die App sucht danach automatisch ein passendes Porträt bei Wikipedia.</p>
+  <p id="editHint">Trage den Namen ein, den die Karte anzeigen soll.</p>
   <form id="editForm">
     <input id="editCardId" type="hidden">
     <label for="editPlayerName">Spielername</label>
     <input id="editPlayerName" type="text" placeholder="z. B. Harry Kane" maxlength="100" autocomplete="off">
     <div class="dialog-actions">
-      <button class="ok" type="submit">Speichern &amp; Foto suchen</button>
+      <button class="ok" type="submit">Namen speichern</button>
       <button class="secondary" type="button" id="editCancel">Abbrechen</button>
       <button class="secondary" type="button" id="editRemove">Zurücksetzen</button>
     </div>
@@ -298,12 +344,26 @@ function teamShort(team){
   const map={'Manchester City':'Man City','Manchester United':'Man United','Paris Saint-Germain':'PSG','Bayer 04 Leverkusen':'Leverkusen','Atlético de Madrid':'Atlético','Borussia Dortmund':'Dortmund','FC Bayern München':'Bayern','FC Barcelona':'Barcelona','Real Madrid CF':'Real Madrid','SL Benfica':'Benfica','Limited Edition':'Limited Edition','Sonderserie':'Sonderserie'};
   return map[team] || team;
 }
-function palette(card){
-  const str=(card.t+'|'+card.k);
-  let h=0; for(const ch of str) h=(h*31 + ch.charCodeAt(0))%360;
-  const h2=(h+55)%360;
-  const h3=(h+130)%360;
-  return `linear-gradient(145deg, hsl(${h} 72% 34%), hsl(${h2} 68% 22%) 55%, hsl(${h3} 72% 16%))`;
+// Jede Kartengruppe erhält eine eigenständige, an der 26/27-Serie orientierte Optik.
+function designKind(k){
+ const designs={
+  'Basis':'base','Leader':'leader','Attax Debutant':'debut','Infinity':'infinity',
+  'Man of the Match':'motm','Power Play':'power','Goaliaths':'goal','Fortress':'fortress',
+  '20th Anniversary':'anniversary','Slick':'slick','Genuine Genius':'genius',
+  'All-Time 100 Club':'hundred','Supreme Master':'supreme','Mystical':'mystical',
+  'Attax Master':'master','Unbeatable 101':'unbeatable','WHOOSH!':'whoosh',
+  'Enigma':'enigma','Age of Heroes':'heroes','Greatest Hits':'hits',
+  'Legends':'legends','Black Nitro':'nitro','Festive Edition':'festive','Taktikkarte':'tactic'};
+ return designs[k]||'base';
+}
+function markFor(k){
+ const m={'Infinity':'∞','WHOOSH!':'✹','Enigma':'◐','Mystical':'✧','Genuine Genius':'✦',
+ 'Goaliaths':'◎','Fortress':'⬡','Power Play':'ϟ','Man of the Match':'★',
+ 'All-Time 100 Club':'100','Unbeatable 101':'101','20th Anniversary':'20',
+ 'Age of Heroes':'⚡','Greatest Hits':'♫','Black Nitro':'N','Festive Edition':'❄',
+ 'Slick':'✧','Supreme Master':'S','Attax Master':'A','Leader':'◆',
+ 'Attax Debutant':'NEW','Legends':'★','Taktikkarte':'↗'};
+ return m[k]||'★';
 }
 function buildFilters(){
   for(const [id,key,label] of [['team','t'],['type','k']]){
@@ -328,116 +388,6 @@ function filteredCards(){
       && (filter==='all' || (filter==='owned' && n>0) || (filter==='missing' && !n) || (filter==='duplicates' && n>1));
   });
 }
-// Bildquelle: Wikipedia/Wikimedia Commons, Abfragen erst wenn Karte im Blickfeld ist.
-// Keine ungesicherten URL-Ratespiele: es wird nur ein passender Wikipedia-Porträteintrag verwendet.
-const PHOTO_STORAGE='match-attax-26-27-photos-v1';
-const photoCache = (()=>{try{return JSON.parse(localStorage.getItem(PHOTO_STORAGE)||'{}')||{}}catch(e){return {}}})();
-const pendingPhotos=new Map();
-let activePhotoRequests=0;
-const photoQueue=[];
-const ALIASES={
- 'Ronaldo':'Ronaldo (Brazilian footballer)',
- 'Rodri':'Rodri (footballer, born 1996)',
- 'Raphinha':'Raphinha',
- 'Viní Jr.':'Vinícius Júnior',
- 'Savinho':'Savinho',
- 'Alisson Becker':'Alisson Becker',
- 'Gabriel Magalhães':'Gabriel Magalhães',
- 'Alysson':'Alysson (footballer)',
- 'Pedri':'Pedri',
- 'Vitinha':'Vitinha (footballer, born 2000)',
- 'Pio Esposito':'Francesco Pio Esposito'
-};
-function photoName(name){return (ALIASES[name]||name).trim()}
-function normalizePhotoTitle(s){return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,' ').toLowerCase().trim()}
-async function wikiLookup(name, search=false){
-  const term=photoName(name);
-  const params=new URLSearchParams({action:'query',format:'json',formatversion:'2',origin:'*',prop:'pageimages|description',piprop:'thumbnail|name',pithumbsize:'360',redirects:'1'});
-  if(search){
-    params.set('generator','search');
-    params.set('gsrsearch','"'+term+'" footballer');
-    params.set('gsrlimit','5');
-    params.set('gsrnamespace','0');
-  } else params.set('titles',term);
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),9000);
-  try{
-    const response=await fetch('https://en.wikipedia.org/w/api.php?'+params.toString(),{signal:controller.signal,mode:'cors'});
-    if(!response.ok) return null;
-    const data=await response.json();
-    const pages=data.query?.pages||[];
-    const exact=normalizePhotoTitle(term);
-    const first=normalizePhotoTitle(name);
-    const eligible=pages.filter(p=>p.thumbnail?.source&&p.title&&p.ns===0&&
-       (normalizePhotoTitle(p.title)===exact || normalizePhotoTitle(p.title)===first ||
-        normalizePhotoTitle(p.title).startsWith(exact+' ') || normalizePhotoTitle(p.title).startsWith(first+' ')));
-    const ranked=eligible.sort((a,b)=>{
-      const rank=p=>normalizePhotoTitle(p.title)===exact?0:normalizePhotoTitle(p.title)===first?1:2;
-      return rank(a)-rank(b);
-    });
-    if(!ranked.length)return null;
-    const p=ranked[0];
-    return {url:p.thumbnail.source,article:'https://en.wikipedia.org/wiki/'+encodeURIComponent(p.title.replace(/ /g,'_')),file:p.pageimage?'https://en.wikipedia.org/wiki/File:'+encodeURIComponent(p.pageimage.replace(/ /g,'_')):null};
-  }catch(e){return null}finally{clearTimeout(timer)}
-}
-async function resolvePhoto(name){
-  const existing=photoCache[name];
-  if(existing && existing.checked && Date.now()-existing.checked<(existing.url?30:2)*86400000) return existing.url?existing:null;
-  const found=await wikiLookup(name,false)||await wikiLookup(name,true);
-  const entry=found?{...found,checked:Date.now()}:{url:null,checked:Date.now()};
-  photoCache[name]=entry;
-  try{localStorage.setItem(PHOTO_STORAGE,JSON.stringify(photoCache))}catch(e){}
-  return found?entry:null;
-}
-function queuePhoto(name){
-  if(pendingPhotos.has(name)) return pendingPhotos.get(name);
-  let resolve;
-  const promise=new Promise(r=>resolve=r);
-  pendingPhotos.set(name,promise);
-  photoQueue.push({name,resolve});
-  pumpPhotoQueue();
-  return promise;
-}
-function pumpPhotoQueue(){
-  while(activePhotoRequests<3 && photoQueue.length){
-    const {name,resolve}=photoQueue.shift();
-    activePhotoRequests++;
-    resolvePhoto(name).then(resolve).catch(()=>resolve(null)).finally(()=>{activePhotoRequests--;pendingPhotos.delete(name);pumpPhotoQueue()});
-  }
-}
-let photoObserver;
-function installPhotos(){
-  if(photoObserver)photoObserver.disconnect();
-  const areas=document.querySelectorAll('.art[data-photo-name]');
-  photoObserver=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      if(!entry.isIntersecting)continue;
-      const area=entry.target;
-      photoObserver.unobserve(area);
-      const name=area.dataset.photoName;
-      if(!name || name.includes(' / '))continue;
-      const cached=photoCache[name];
-      if(cached?.url){showPhoto(area,cached);continue;}
-      queuePhoto(name).then(record=>{
-        if(record && area.isConnected)showPhoto(area,record);
-        else if(area.isConnected){const el=area.querySelector('.photo-fallback');if(el)el.textContent='Kein Foto gefunden';}
-      });
-    }
-  },{rootMargin:'260px'});
-  areas.forEach(a=>photoObserver.observe(a));
-}
-function showPhoto(area,record){
-  if(!record?.url||area.querySelector('img'))return;
-  const img=document.createElement('img');
-  img.className='player-photo';img.alt='Spielerfoto: '+area.dataset.photoName;
-  img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
-  img.onerror=()=>{img.remove();area.classList.remove('has-photo');};
-  const source=document.createElement('a');
-  source.className='photo-credit';source.textContent='Bildnachweis ↗';source.href=record.file||record.article;
-  source.target='_blank';source.rel='noopener noreferrer';source.setAttribute('aria-label','Fotoquelle auf Wikipedia öffnen');
-  area.append(img,source);
-  img.src=record.url;area.classList.add('has-photo');
-}
 function render(){
   const owned=cards.filter(c=>(counts[c.id]||0)>0).length;
   $('owned').textContent=owned;
@@ -453,17 +403,18 @@ function render(){
     const n=counts[card.id]||0;
     const assignedName=cardName(card);
     const player=assignedName && assignedName.trim() ? assignedName : 'Karte '+card.id;
-    return `<article class="card ${n?'owned':''}" style="--cardbg:${palette(card)}">
+    return `<article class="card design-${designKind(card.k)} ${n?'owned':''}">
       <div class="corner-check">✓</div>
       <div class="card-head">
         <div class="badge">${escapeHTML(card.k)}</div>
         <div class="num">#${escapeHTML(card.id)}</div>
       </div>
-      <div class="art" data-photo-name="${escapeHTML(assignedName||'')}" data-card-id="${escapeHTML(card.id)}">
+      <div class="art">
+        <div class="design-geometry" aria-hidden="true"></div>
         <div class="silhouette"></div>
         <div class="initials">${escapeHTML(initials(player))}</div>
         <div class="teammark"><span>Verein</span>${escapeHTML(teamShort(teamLabel(card.t)))}</div>
-        <span class="photo-fallback">${assignedName?'Foto wird gesucht':'Noch kein Name'}</span>
+        <span class="design-mark" aria-hidden="true">${escapeHTML(markFor(card.k))}</span>
       </div>
       <div class="card-body">
         <div class="player">${escapeHTML(player)}</div>
@@ -480,7 +431,6 @@ function render(){
       </div>
     </article>`;
   }).join('') : '<div class="empty">Keine passenden Karten gefunden.</div>';
-  installPhotos();
 }
 $('grid').addEventListener('click',e=>{
   const btn=e.target.closest('button[data-act]');
