@@ -244,53 +244,55 @@ h1{font-size:27px;margin:6px 0 5px;text-shadow:0 2px 0 rgba(0,0,0,.2);font-style
 @media(max-width:370px){.card .club-crest{width:36px;height:36px}.card .club-crest img{max-width:31px;max-height:31px}}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+
+/* V9: fokussiertes mobiles Redesign */
+:root{--bg:#080b18;--text:#f6f7ff;--muted:#9da8c1;--line:#ffffff1a;--accent:#c7fb54;color-scheme:dark}
+html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 auto;padding-bottom:20px}
+[hidden]{display:none!important}
+.header{padding:calc(env(safe-area-inset-top) + 24px) 20px 22px;background:radial-gradient(ellipse at 95% 0,#482473 0,transparent 53%),radial-gradient(ellipse at 0 90%,#272d78 0,transparent 55%),linear-gradient(152deg,#181333,#090c1e);border-radius:0 0 32px 32px;border-bottom:1px solid #ffffff21;box-shadow:0 18px 48px #0004}
+.header::before{display:none}.brand{align-items:flex-start}.eyebrow{font-size:10px;letter-spacing:2.3px;font-weight:900;color:#c7fb54}.season{color:#b1a9d1;margin-left:7px}.brand h1{font-size:clamp(27px,6.8vw,45px);line-height:1.03;font-weight:1000;letter-spacing:-1.3px;font-style:normal;margin:8px 0 9px;white-space:nowrap}.brand h1 em{font-style:italic;color:#d4f56f}.title-dot{color:#9b6efa}.brand .sub{font-size:11px;color:#b1b8d8;letter-spacing:.2px}.logo-chip{font-size:22px;line-height:.85;border:1px solid #d6b75b;color:#ffdc7c;background:linear-gradient(145deg,#725024,#291d4d);border-radius:11px;transform:rotate(5deg);box-shadow:0 8px 28px #0008;padding:9px 12px}.logo-chip small{font-size:8px;letter-spacing:1px}
+.hero-progress{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 4px 8px}.micro{font-size:9px;color:#9fa6cb;letter-spacing:1.6px;font-weight:900}.hero-number{display:flex;align-items:baseline;gap:12px;margin-top:5px}.hero-number #percent{font-size:40px;font-weight:950;letter-spacing:-2px}.hero-caption{font-size:12px;color:#d9d7f0}.progress-ring{--ring-progress:0%;width:76px;height:76px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(#cbfc64 var(--ring-progress),#3a3758 0);box-shadow:0 2px 20px #c7fb5417}.progress-ring:before{content:'';grid-area:1/1;width:63px;height:63px;border-radius:50%;background:#17142e}.progress-ring div{grid-area:1/1;position:relative;color:#d9fbae;font-size:12px;font-weight:900}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0}.stat-row>div{background:#ffffff0e;border:1px solid #ffffff1c;padding:10px 12px;border-radius:13px}.stat-row strong{display:block;font-size:22px;line-height:1.05}.stat-row span{display:block;font-size:10px;color:#aeb2d2;margin-top:5px}.header>.bar{margin-top:13px;height:5px;border-radius:99px;background:#393653;overflow:hidden}.header>.bar div{height:100%;border-radius:99px;background:linear-gradient(90deg,#b8f45b,#e3ff9e)}
+.controls{position:relative;padding:16px 14px 5px;background:transparent;border:0;backdrop-filter:none}.search-wrap{position:relative}.search-icon{position:absolute;top:3px;left:13px;font-size:31px;color:#c0cadc;z-index:1}.search{padding:15px 14px 15px 45px;border:1px solid #353b57;border-radius:15px;background:#171d31;color:white;font-size:15px;box-shadow:0 7px 18px #0002}.search::placeholder{color:#929db4}.filters{gap:9px;margin-top:10px}.filters select,.sort-label select,.missing-toolbar select{border:1px solid #353b57;background:#171d31;border-radius:12px;color:#e4e8f5;padding:12px 10px;font-size:12px;width:100%}
+.tabs{gap:7px;margin-top:14px;padding-bottom:4px}.tabs button{background:#151a2d;color:#bfc5d8;border:1px solid #333952;border-radius:99px;padding:9px 14px;font-size:12px;font-weight:700}.tabs button.active{background:#c7fb54;border-color:#c7fb54;color:#1b2430}.results{padding:13px 16px 8px;align-items:center;font-size:12px;color:#a5afc3}.sort-label{display:flex;align-items:center;gap:6px;font-size:11px}.sort-label select{width:auto;min-width:105px;padding:6px 8px;background:#151a2d}.grid{padding:6px 12px 116px;gap:12px}
+.card{border-radius:17px;box-shadow:0 10px 28px #0006;transition:transform .15s,border-color .15s;min-width:0}.card.owned{border-color:#c7fb54;box-shadow:0 0 0 1px #c7fb5470,0 10px 28px #0006}.card .card-head{padding:9px 9px 0}.card .badge{font-size:9px;max-width:72%;border-radius:6px}.card .num{border-radius:7px;font-size:11px}.card .art{height:127px;border-radius:12px;margin:7px 8px 0}.card .card-body{background:linear-gradient(180deg,transparent,#080b2155);padding:10px 9px 10px}.card .player{font-size:13px;min-height:32px;line-height:1.15}.card .edit-name{font-weight:650;border:0;background:transparent;text-align:left;color:#e4e8ffad;padding:7px 2px;text-decoration:underline;text-underline-offset:3px}.card .toggle{background:#ffffff1f;color:white;border:1px solid #ffffff50;border-radius:10px;font-weight:900;font-size:11px}.card.owned .toggle{background:#c7fb54;color:#202719;border-color:#c7fb54}.card .qty{background:#0b122777;border-radius:9px}.card .qty button{background:#ffffff1a;border-radius:8px}.card .club-crest{border-radius:10px}
+.bottom{max-width:1040px;margin:auto;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:10px 7px calc(9px + env(safe-area-inset-bottom));border-top:1px solid #ffffff18;background:#0e1327f5;backdrop-filter:blur(22px);box-shadow:0 -8px 30px #0004}.bottom button{border:0;border-radius:11px;background:transparent;color:#909bb8;padding:4px 0 5px;display:flex;flex-direction:column;gap:4px;align-items:center;font-size:10px;font-weight:700}.bottom button.nav-active{color:#d0fa6d;background:#c7fb540b}.nav-glyph{font-size:24px;font-weight:750;height:27px;line-height:27px}.more-menu{position:fixed;bottom:calc(78px + env(safe-area-inset-bottom));right:12px;z-index:22;background:#20273e;border:1px solid #4b526f;border-radius:18px;padding:9px;box-shadow:0 18px 55px #000a;display:flex;flex-direction:column;gap:5px}.more-menu button{background:transparent;color:white;border:0;text-align:left;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:700}
+.special-panel{padding:26px 16px 120px}.section-intro{padding:10px 2px 20px}.section-intro h2{font-size:clamp(27px,7vw,44px);letter-spacing:-1.5px;margin:8px 0 9px}.section-intro h2 em{color:#c7fb54;font-style:normal}.section-intro p{color:#a9b4c8;font-size:13px;line-height:1.6;margin:0;max-width:65ch}.missing-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 18px}.missing-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px;border:1px solid #ffffff1f;background:linear-gradient(135deg,#242848,#151c32);border-radius:18px}.missing-summary strong{font-size:35px;line-height:1;display:block}.missing-summary span{font-size:11px;color:#b6c1d2;display:block;margin-top:5px}.action-lime{border:0;background:#c7fb54;color:#1e2730;font-weight:850;padding:13px 12px;border-radius:11px;font-size:12px}.number-groups{margin-top:18px;display:grid;gap:13px}.number-group{background:#171c30;border:1px solid #ffffff19;padding:14px;border-radius:17px}.number-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.number-group-head strong{font-size:14px}.number-group-head span{font-size:11px;color:#99a6bd}.number-chips{display:flex;flex-wrap:wrap;gap:7px}.number-chips button{border:1px solid #39435e;color:#eaf2ff;background:#252e49;padding:9px 10px;border-radius:9px;min-width:44px;font-size:12px;font-weight:800}.export-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:18px 0}.export-actions button{background:#252d46;border:1px solid #4b5570;color:#f2f5ff;border-radius:12px;padding:13px 9px;font-size:12px;font-weight:800}.category-progress{display:grid;gap:11px}.stat-category{background:#181e32;border:1px solid #ffffff20;padding:15px;border-radius:15px}.category-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:11px}.category-top span{color:#a3b1c6}.category-track{height:7px;background:#353c54;border-radius:99px;overflow:hidden}.category-track div{height:100%;background:linear-gradient(90deg,#8c9dec,#d5fa68);border-radius:99px}.visually-hidden{position:absolute;clip:rect(0 0 0 0);width:1px;height:1px;overflow:hidden}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.header{padding-left:28px;padding-right:28px}.hero-number #percent{font-size:48px}}
+@media(max-width:370px){.brand h1{font-size:27px}.card .qty button{width:24px}.card .toggle{padding:8px 4px}.bottom button{font-size:9px}}
+
 </style>
 </head>
 <body>
-<header class="header">
-  <div class="brand">
-    <div>
-      <div class="eyebrow">Deine Sammlung</div>
-      <h1>Match Attax<br>Champions League <span style="color:#8af6d7">26/27</span></h1>
-      <div class="sub">Kartenalbum · Sammeln · Tauschen</div>
-    </div>
-    <div class="logo-chip">TRACKER</div>
-  </div>
-  <div class="stats">
-    <div class="stat"><strong id="owned">0</strong><span>Verschiedene Karten</span></div>
-    <div class="stat"><strong id="missing">0</strong><span>Fehlen noch</span></div>
-    <div class="stat"><strong id="percent">0 %</strong><span>Komplett</span></div>
-  </div>
-  <div class="progress-wrap">
-    <div class="progress-top"><span>Sammlungsfortschritt</span><span id="progressLabel">0 von 0 Karten</span></div>
-    <div class="bar"><div id="progress"></div></div>
-  </div>
+<header class="header" id="top">
+ <div class="brand"><div><div class="eyebrow">MEIN KARTENALBUM <span class="season">2026 / 27</span></div><h1>MATCH <em>ATTAX</em><span class="title-dot">.</span></h1><div class="sub">UEFA Club Competitions · Sammlungs-Tracker</div></div><div class="logo-chip">20<br><small>YEARS</small></div></div>
+ <div class="hero-progress"><div class="hero-copy"><div class="micro">DEIN SAMMELFORTSCHRITT</div><div class="hero-number"><span id="percent">0 %</span><span class="hero-caption">Komplett</span></div></div><div class="progress-ring" id="ring"><div id="ringCenter">0 %</div></div></div>
+ <div class="stat-row"><div><strong id="owned">0</strong><span>Gesammelt</span></div><div><strong id="missing">559</strong><span>Fehlend</span></div><div><strong id="dupeCount">0</strong><span>Tauschbar</span></div></div>
+ <div class="bar"><div id="progress"></div></div><span id="progressLabel" class="visually-hidden">0 von 559 Karten</span>
 </header>
-<section class="controls">
-  <input id="query" class="search" type="search" placeholder="Spieler, Verein, Kartennummer oder Kartentyp suchen …" aria-label="Karten suchen">
-  <div class="filters">
-    <select id="team"><option value="">Alle Vereine</option></select>
-    <select id="type"><option value="">Alle Kartentypen</option></select>
-  </div>
-  <div class="tabs">
-    <button class="active" data-filter="all">Alle</button>
-    <button data-filter="owned">Vorhanden</button>
-    <button data-filter="missing">Fehlende</button>
-    <button data-filter="duplicates">Doppelte</button>
-  </div>
+<section id="collectionPanel" class="app-panel">
+ <section class="controls"><div class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="query" class="search" type="search" placeholder="Nummer, Spieler oder Verein suchen" aria-label="Karten suchen"></div>
+ <div class="filters"><select id="team" aria-label="Verein wählen"><option value="">Alle Vereine</option></select><select id="type" aria-label="Kartentyp wählen"><option value="">Alle Klassen</option></select></div>
+ <div class="tabs"><button class="active" data-filter="all">Alle Karten</button><button data-filter="owned">Gesammelt</button><button data-filter="missing">Fehlende</button><button data-filter="duplicates">Doppelte</button></div>
+ </section>
+ <div class="results"><span id="resultCount">559 Karten angezeigt</span><span id="statusHint" hidden></span><label class="sort-label">Sortieren <select id="sortBy" aria-label="Karten sortieren"><option value="number">Nummer</option><option value="type">Klasse</option><option value="name">Spielername</option></select></label></div>
+ <main id="grid" class="grid"></main>
 </section>
-<div class="results"><span id="resultCount">0 Karten angezeigt</span><span id="statusHint" class="hint">Karten direkt abhaken</span></div>
-<main id="grid" class="grid"></main>
-<div class="bottom">
-  <button id="backup">Sicherung</button>
-  <button id="restore">Importieren</button>
-  <button class="primary" id="help">Info &amp; Hilfe</button>
-</div>
+<section id="numbersPanel" class="app-panel special-panel" hidden>
+ <div class="section-intro"><div class="eyebrow">DEINE SUCHLISTE</div><h2>Fehlende <em>Nummern</em></h2><p>Alle Karten, die dir noch fehlen. Nach Klasse eingrenzen und die Nummern für die Suche kopieren.</p></div>
+ <div class="missing-toolbar"><select id="missingType" aria-label="Fehlende Karten nach Klasse"><option value="">Alle Klassen</option></select><select id="missingTeam" aria-label="Fehlende Karten nach Verein"><option value="">Alle Vereine</option></select></div>
+ <div class="missing-summary"><div><strong id="missingNumberCount">559</strong><span>Fehlende Kartennummern</span></div><button class="action-lime" id="copyMissing">Nummern kopieren</button></div>
+ <div id="missingGroups" class="number-groups"></div>
+ <div class="export-actions"><button id="copyMissingDetailed">Liste mit Namen kopieren</button><button id="csvMissing">Als CSV exportieren</button></div>
+</section>
+<section id="statsPanel" class="app-panel special-panel" hidden><div class="section-intro"><div class="eyebrow">DEINE SAMMLUNG IN ZAHLEN</div><h2>Sammler<em>status</em></h2><p>Hier siehst du, welche Kartentypen dir noch fehlen.</p></div><div id="statsByType" class="category-progress"></div></section>
+<nav class="bottom" aria-label="Hauptnavigation"><button class="nav-active" data-page="collection" aria-label="Sammlung anzeigen"><span class="nav-glyph">▦</span><span>Sammlung</span></button><button data-page="numbers" aria-label="Fehlende Nummern anzeigen"><span class="nav-glyph">#</span><span>Fehlliste</span></button><button data-page="duplicates" aria-label="Tauschliste anzeigen"><span class="nav-glyph">⇄</span><span>Tauschliste</span></button><button data-page="stats" aria-label="Statistik anzeigen"><span class="nav-glyph">◔</span><span>Statistik</span></button><button id="moreMenu" aria-label="Menü öffnen"><span class="nav-glyph">•••</span><span>Mehr</span></button></nav>
+<div class="more-menu" id="menuPanel" hidden><button id="backup">Sicherung exportieren</button><button id="restore">Sicherung importieren</button><button id="help">Info & Hilfe</button></div>
 <input id="file" class="file" type="file" accept=".json,.csv,application/json,text/csv">
 <dialog id="modal">
-  <h2>So funktioniert die Kartenansicht</h2>
+  <h2>So funktioniert dein Sammelalbum</h2>
   <p>Jede Karte wird als stilisierte Vorschau angezeigt. Mit <b>Vorhanden</b> hakst du sie ab. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
-  <p>Die App nutzt nur die Daten auf diesem iPhone. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
+  <p>Unter „Fehlliste“ findest du alle noch fehlenden Kartennummern. Dort kannst du Nummern oder eine vollständige Liste kopieren und als CSV exportieren.</p><p>Die App nutzt nur die Daten auf diesem iPhone. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
   <p>Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du die Karten selbst ergänzen. Die Angaben bleiben lokal gespeichert und werden mit exportiert.</p>
   <p>Die Kartengrafiken sind eigenständige, von den Serienarten inspirierte Illustrationen ohne Originalbilder. Die Silhouette ist absichtlich bei jeder Karte gleich. Für die Vereinswappen wird beim ersten Aufruf eine Internetverbindung benötigt. Ohne gefundenes Wappen erscheint ein Vereins-Kürzel.</p>
   <button id="close" class="ok">Verstanden</button>
@@ -505,10 +507,13 @@ function render(){
   $('owned').textContent=owned;
   $('missing').textContent=cards.length-owned;
   const percent=cards.length?Math.round(owned/cards.length*100):0;
-  $('percent').textContent=percent+' %';
+  $('percent').textContent=percent+' %';$('ringCenter').textContent=percent+' %';$('ring').style.setProperty('--ring-progress',percent+'%');$('dupeCount').textContent=cards.reduce((sum,c)=>sum+Math.max(0,(counts[c.id]||0)-1),0);
   $('progress').style.width=percent+'%';
   $('progressLabel').textContent=`${owned} von ${cards.length} Karten`;
   const arr=filteredCards();
+  const sort=$('sortBy').value;
+  if(sort==='type')arr.sort((a,b)=>a.k.localeCompare(b.k,'de')||String(a.id).localeCompare(String(b.id),'de',{numeric:true}));
+  if(sort==='name')arr.sort((a,b)=>cardName(a).localeCompare(cardName(b),'de')||String(a.id).localeCompare(String(b.id),'de',{numeric:true}));
   $('resultCount').textContent=`${arr.length} Karten angezeigt`;
   $('statusHint').textContent = filter==='duplicates' ? 'Mehrfach vorhanden' : 'Karten direkt abhaken';
   $('grid').innerHTML = arr.length ? arr.map(card=>{
@@ -544,6 +549,7 @@ function render(){
       </div>
     </article>`;
   }).join('') : '<div class="empty">Keine passenden Karten gefunden.</div>';
+  refreshPanels();
 }
 $('grid').addEventListener('click',e=>{
   const btn=e.target.closest('button[data-act]');
@@ -585,6 +591,7 @@ $('editRemove').onclick=()=>{
 $('query').addEventListener('input',render);
 $('team').addEventListener('change',render);
 $('type').addEventListener('change',render);
+$('sortBy').addEventListener('change',render);
 document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
   filter=btn.dataset.filter;
   document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active', b===btn));
@@ -620,7 +627,83 @@ $('file').onchange=async e=>{
 $('help').onclick=()=>$('modal').showModal();
 $('close').onclick=()=>$('modal').close();
 $('reset').onclick=()=>{ if(confirm('Wirklich alle Häkchen und Mengen löschen?')){ counts={}; save(); $('modal').close(); } };
+
+// V9: Navigation, Fehlliste und Statistik. Bestehende localStorage-Schlüssel bleiben unverändert.
+let activePage='collection';
+function missingSelection(){
+  return cards.filter(c=>!counts[c.id] && (!$('missingType').value || c.k===$('missingType').value) && (!$('missingTeam').value || c.t===$('missingTeam').value));
+}
+function missingText(detailed=false){
+  return missingSelection().map(c=>detailed?'#'+c.id+' · '+(cardName(c)||'Unbekannter Spieler')+' · '+c.k+' · '+c.t:c.id).join(detailed?'\n':', ');
+}
+function fillMissingFilters(){
+  for(const [id,key] of [['missingType','k'],['missingTeam','t']]){
+    const select=$(id);
+    [...new Set(cards.map(c=>c[key]))].sort((a,b)=>a.localeCompare(b,'de')).forEach(val=>{
+      const option=document.createElement('option');option.value=val;option.textContent=val;select.append(option);
+    });
+  }
+}
+function renderMissing(){
+  const arr=missingSelection();$('missingNumberCount').textContent=arr.length;
+  const groups=new Map();
+  for(const c of arr){if(!groups.has(c.k))groups.set(c.k,[]);groups.get(c.k).push(c)}
+  $('missingGroups').innerHTML=groups.size?[...groups.entries()].map(([type,items])=>`<section class="number-group"><div class="number-group-head"><strong>${escapeHTML(type)}</strong><span>${items.length} fehlen</span></div><div class="number-chips">${items.map(c=>`<button data-cardjump="${escapeHTML(c.id)}" title="${escapeHTML(cardName(c)||'Karte '+c.id)}" aria-label="Karte ${escapeHTML(c.id)} anzeigen">${escapeHTML(c.id)}</button>`).join('')}</div></section>`).join(''):'<div class="empty">Geschafft! In dieser Auswahl fehlen keine Karten.</div>';
+}
+function renderStats(){
+  const groups=new Map();
+  cards.forEach(c=>{if(!groups.has(c.k))groups.set(c.k,{all:0,own:0});const g=groups.get(c.k);g.all++;if(counts[c.id]>0)g.own++});
+  $('statsByType').innerHTML=[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'de')).map(([k,g])=>`<div class="stat-category"><div class="category-top"><strong>${escapeHTML(k)}</strong><span>${g.own} / ${g.all}</span></div><div class="category-track"><div style="width:${Math.round(g.own/g.all*100)}%"></div></div></div>`).join('');
+}
+function refreshPanels(){
+  if(activePage==='numbers')renderMissing();
+  if(activePage==='stats')renderStats();
+}
+function navigate(page){
+  activePage=page;
+  $('collectionPanel').hidden=page!=='collection'&&page!=='duplicates';
+  $('numbersPanel').hidden=page!=='numbers';
+  $('statsPanel').hidden=page!=='stats';
+  if(page==='duplicates'){
+    filter='duplicates';
+    document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
+  }else if(page==='collection'&&filter==='duplicates'){
+    filter='all';document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter));
+  }
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('nav-active',b.dataset.page===page));
+  $('menuPanel').hidden=true;
+  render();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.page)));
+$('moreMenu').addEventListener('click',()=>$('menuPanel').hidden=!$('menuPanel').hidden);
+$('missingType').addEventListener('change',renderMissing);
+$('missingTeam').addEventListener('change',renderMissing);
+$('missingGroups').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cardjump]');if(!b)return;
+  const id=b.dataset.cardjump;
+  $('query').value=id;
+  $('team').value='';$('type').value='';
+  filter='all';document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x.dataset.filter===filter));
+  navigate('collection');
+});
+async function copyText(text){
+  if(!text){alert('In dieser Auswahl fehlen keine Karten.');return}
+  try{await navigator.clipboard.writeText(text);alert('Liste kopiert.')}catch(e){
+    const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();
+    const ok=document.execCommand('copy');area.remove();alert(ok?'Liste kopiert.':'Kopieren nicht möglich. Bitte in Safari öffnen.');
+  }
+}
+$('copyMissing').addEventListener('click',()=>copyText(missingText(false)));
+$('copyMissingDetailed').addEventListener('click',()=>copyText(missingText(true)));
+$('csvMissing').addEventListener('click',()=>{
+  const rows=missingSelection();const quoted=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const csv='\uFEFFNummer;Spieler;Verein;Klasse\r\n'+rows.map(c=>[c.id,cardName(c),c.t,c.k].map(quoted).join(';')).join('\r\n');
+  download('match-attax-fehlliste-26-27.csv',csv,'text/csv;charset=utf-8');
+});
+
 buildFilters();
+fillMissingFilters();
 render();
 loadClubCrests();
 </script>
