@@ -265,20 +265,29 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 /* V10 Scanner: bewusst eigenständiger, eindeutiger Fotoausschnitt */
 .scan-name-row{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:6px}
 .scan-name-row .edit-name{margin:0;min-width:0}
-.scan-launch{border:1px solid #d5fb69;background:#d5fb6920;color:#e8ffa1;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:850;white-space:nowrap;cursor:pointer}
-.scan-launch.has-scan{background:#d5fb69;color:#162015}
-.art .card-scan-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#101421;z-index:5;border:0}
-#scanDialog{width:min(96vw,520px);max-width:520px;max-height:90vh;overflow:auto;padding:15px}
-#scanDialog h2{font-size:20px}
-#scanDialog .scan-description{font-size:12px;color:#c6d2e3;line-height:1.45}
 #scanCanvas{width:100%;max-height:53vh;display:block;border-radius:11px;background:#080e18;touch-action:none;cursor:crosshair;border:1px solid #ffffff40}
-.scan-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-.scan-toolbar button,.scan-toolbar label{background:#24354c;color:white;border:1px solid #ffffff2d;border-radius:9px;padding:10px 12px;font-weight:750;font-size:12px}
-.scan-toolbar .scan-confirm{background:#d5fb69;color:#0a2016;border:0}
-.scan-toolbar button:disabled{opacity:.4}
-.scan-status{color:#bdcde0;font-size:12px;min-height:18px;margin-top:8px}
-.scan-hint{margin:8px 0;color:#c7e48a;font-size:12px;line-height:1.4}
 
+
+/* Nummernscanner */
+.auto-check-option{display:flex;align-items:center;gap:9px;margin:10px 0 12px;font-size:12px;color:#dce7f2;line-height:1.4}.auto-check-option input{width:18px;height:18px;accent-color:#d5fb69;flex:none}
+.auto-scan-launch{width:100%;margin:2px 0 12px;border:0;border-radius:16px;padding:14px 17px;background:linear-gradient(120deg,#d5fb69,#91f0db);color:#11201c;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 8px 20px #0003;display:flex;align-items:center;justify-content:center;gap:10px}
+#autoScanDialog{width:min(94vw,480px);max-height:90vh;overflow-y:auto;border-radius:23px;padding:20px;background:#131c2b;color:#fff;border:1px solid #ffffff30}
+#autoScanDialog h2{margin:0 0 6px;font-size:22px}
+#autoScanDialog p{font-size:13px;line-height:1.5;color:#b9c8dc}
+#autoScanDialog img{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:12px;background:#080d17;margin:12px 0}
+#autoScanDialog select{width:100%;padding:13px;border-radius:12px;background:#26334a;color:#fff;border:1px solid #ffffff40;font-size:16px}
+#autoScanDialog .auto-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#autoScanDialog .auto-actions button{border:0;border-radius:12px;padding:11px 15px;background:#29374f;color:#fff;font-weight:700}
+#autoScanDialog .auto-actions button.primary{background:#d5fb69;color:#17201b}
+#autoScanDialog .auto-actions button:disabled{opacity:.45}
+#autoScanResult{color:#d5fb69!important;min-height:20px}
+
+/* V12: Direktes Abhaken durch Berührung der Karte */
+.card[data-card-id]{cursor:pointer;touch-action:manipulation;transition:transform .15s ease,border-color .15s ease}
+.card[data-card-id]:active{transform:scale(.985)}
+.card[data-card-id]:focus-visible{outline:3px solid #d5fb69;outline-offset:3px}
+.card[data-card-id].owned{box-shadow:0 10px 26px #080a1b77,0 0 0 2px #d5fb6999}
+.card button{touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -289,7 +298,7 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
  <div class="bar"><div id="progress"></div></div><span id="progressLabel" class="visually-hidden">0 von 559 Karten</span>
 </header>
 <section id="collectionPanel" class="app-panel">
- <section class="controls"><div class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="query" class="search" type="search" placeholder="Nummer, Spieler oder Verein suchen" aria-label="Karten suchen"></div>
+ <section class="controls"><button type="button" id="startAutoScan" class="auto-scan-launch">▣ Kartennummer scannen &amp; abhaken</button><div class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input id="query" class="search" type="search" placeholder="Nummer, Spieler oder Verein suchen" aria-label="Karten suchen" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>
  <div class="filters"><select id="team" aria-label="Verein wählen"><option value="">Alle Vereine</option></select><select id="type" aria-label="Kartentyp wählen"><option value="">Alle Klassen</option></select></div>
  <div class="tabs"><button class="active" data-filter="all">Alle Karten</button><button data-filter="owned">Gesammelt</button><button data-filter="missing">Fehlende</button><button data-filter="duplicates">Doppelte</button></div>
  </section>
@@ -309,9 +318,9 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 <input id="file" class="file" type="file" accept=".json,.csv,application/json,text/csv">
 <dialog id="modal">
   <h2>So funktioniert dein Sammelalbum</h2>
-  <p>Jede Karte wird als stilisierte Vorschau angezeigt. Mit <b>Vorhanden</b> hakst du sie ab. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
+  <p>Jede Karte wird als stilisierte Vorschau angezeigt. <b>Tippe irgendwo auf die Karte</b>, um sie abzuhaken oder das Häkchen wieder zu entfernen. Über <b>+</b> und <b>−</b> speicherst du zusätzliche Exemplare für eure Tauschliste.</p>
   <p>Unter „Fehlliste“ findest du alle noch fehlenden Kartennummern. Dort kannst du Nummern oder eine vollständige Liste kopieren und als CSV exportieren.</p><p>Die Sammlungsdaten bleiben derzeit auf jedem Gerät getrennt. Für eine Sicherung kannst du jederzeit eine JSON-Datei exportieren und später wieder importieren.</p>
-  <p>Über „Kamera“ kannst du die Vorderseite einer Karte aufnehmen, die vier Kartenecken festlegen und ausschließlich den zugeschnittenen Kartenbereich speichern. Kartenfotos sind lokal auf diesem Gerät gespeichert und nicht in der JSON-Sicherung enthalten.</p><p>Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du die Karten selbst ergänzen. Die Angaben bleiben lokal gespeichert und werden mit exportiert.</p>
+  <p>Mit „Kartennummer scannen“ kannst du die Nummer fotografieren und erkennen lassen. Es werden dabei keine Kartenfotos gespeichert.</p><p>Mit „Spielername eintragen“ oder „Name bearbeiten“ kannst du die Karten selbst ergänzen. Die Angaben bleiben lokal gespeichert und werden mit exportiert.</p>
   <p>Die Kartengrafiken sind eigenständige, von den Serienarten inspirierte Illustrationen ohne Originalbilder. Die Silhouette ist absichtlich bei jeder Karte gleich. Für die Vereinswappen wird beim ersten Aufruf eine Internetverbindung benötigt. Ohne gefundenes Wappen erscheint ein Vereins-Kürzel.</p>
   <button id="close" class="ok">Verstanden</button>
   <button id="reset" class="secondary">Sammlung zurücksetzen</button>
@@ -322,7 +331,7 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
   <form id="editForm">
     <input id="editCardId" type="hidden">
     <label for="editPlayerName">Spielername</label>
-    <input id="editPlayerName" type="text" placeholder="z. B. Harry Kane" maxlength="100" autocomplete="off">
+    <input id="editPlayerName" type="text" placeholder="z. B. Harry Kane" maxlength="100" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" name="player-entry-manual">
     <div class="dialog-actions">
       <button class="ok" type="submit">Namen speichern</button>
       <button class="secondary" type="button" id="editCancel">Abbrechen</button>
@@ -331,21 +340,21 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
   </form>
 </dialog>
 
-<dialog id="scanDialog" aria-labelledby="scanTitle">
-  <h2 id="scanTitle">Karte fotografieren</h2>
-  <p class="scan-description">Fotografiere die Karte möglichst frontal auf einer ruhigen Unterlage. Ziehe die vier grünen Eckpunkte genau auf die Kartenecken. Danach wird nur der Bereich innerhalb des Vierecks gespeichert und geradegezogen.</p>
-  <input id="scanInput" type="file" accept="image/*" capture="environment" hidden>
-  <canvas id="scanCanvas" width="420" height="560" aria-label="Vier Eckpunkte auf die Kartenecken ziehen"></canvas>
-  <div class="scan-hint">Vier Ecken anpassen · Die Vorschau zeigt zunächst das vollständige Foto</div>
-  <div id="scanStatus" class="scan-status">Noch kein Foto ausgewählt.</div>
-  <div class="scan-toolbar">
-    <button id="scanChoose" type="button">Kamera / Foto wählen</button>
-    <button id="scanResetCorners" type="button">Ecken zurücksetzen</button>
-    <button id="scanSave" class="scan-confirm" type="button" disabled>Zuschnitt speichern</button>
-    <button id="scanDelete" type="button" hidden>Foto entfernen</button>
-    <button id="scanClose" type="button">Schließen</button>
+<dialog id="autoScanDialog" aria-labelledby="autoScanTitle">
+  <h2 id="autoScanTitle">Karte automatisch erkennen</h2>
+  <p>Fotografiere die Kartennummer gut lesbar, möglichst ohne Spiegelungen. Das Foto wird nur für die Texterkennung verwendet und nicht gespeichert. Bei unsicheren Treffern bestätigst du die richtige Karte.</p>
+  <input type="file" id="autoScanInput" accept="image/*" capture="environment" hidden>
+  <img id="autoScanPreview" alt="Nur für die Erkennung verwendetes Foto" hidden>
+  <p id="autoScanResult" role="status">Noch kein Foto aufgenommen.</p>
+  <label class="auto-check-option"><input id="autoScanInstant" type="checkbox" checked> Bei eindeutig erkanntem Spieler und Kartennummer automatisch abhaken</label><label for="autoScanSelect">Erkannte Karte oder Nummer manuell auswählen</label>
+  <select id="autoScanSelect"><option value="">Bitte erst eine Karte fotografieren</option></select>
+  <div class="auto-actions">
+   <button type="button" id="autoScanChoose" class="primary">Kartennummer scannen</button>
+   <button type="button" id="autoScanConfirm" class="primary" disabled>Karte hinzufügen</button>
+   <button type="button" id="autoScanClose">Schließen</button>
   </div>
 </dialog>
+
 <script>
 const cards=[{"id":"1","n":"Luka Modrić","t":"Sonderserie","k":"Infinity"},{"id":"2","n":"Antoine Semenyo","t":"Sonderserie","k":"Infinity"},{"id":"3","n":"Ousmane Dembélé","t":"Sonderserie","k":"Infinity"},{"id":"4","n":"Morgan Rogers","t":"Sonderserie","k":"Infinity"},{"id":"5","n":"Hugo Ekitiké","t":"Sonderserie","k":"Infinity"},{"id":"6","n":"Felix Nmecha","t":"Sonderserie","k":"Infinity"},{"id":"7","n":"Declan Rice","t":"Sonderserie","k":"Infinity"},{"id":"8","n":"Michael Olise","t":"Sonderserie","k":"Infinity"},{"id":"9","n":"Bruno Fernandes","t":"Sonderserie","k":"Infinity"},{"id":"10","n":"David Raya","t":"Arsenal","k":"Basis"},{"id":"11","n":"William Saliba","t":"Arsenal","k":"Basis"},{"id":"12","n":"Gabriel Magalhães","t":"Arsenal","k":"Basis"},{"id":"13","n":"Riccardo Calafiori","t":"Arsenal","k":"Basis"},{"id":"14","n":"Myles Lewis-Skelly","t":"Arsenal","k":"Basis"},{"id":"15","n":"Martín Zubimendi","t":"Arsenal","k":"Basis"},{"id":"16","n":"Martin Ødegaard","t":"Arsenal","k":"Leader"},{"id":"17","n":"Declan Rice","t":"Arsenal","k":"Basis"},{"id":"18","n":"Eberechi Eze","t":"Arsenal","k":"Basis"},{"id":"19","n":"Max Dowman","t":"Arsenal","k":"Attax Debutant"},{"id":"20","n":"Gabriel Martinelli","t":"Arsenal","k":"Basis"},{"id":"21","n":"Viktor Gyökeres","t":"Arsenal","k":"Basis"},{"id":"22","n":"Bukayo Saka","t":"Arsenal","k":"Basis"},{"id":"23","n":"Jurriën Timber","t":"Arsenal","k":"Man of the Match"},{"id":"24","n":"Noni Madueke","t":"Arsenal","k":"Power Play"},{"id":"25","n":"Leandro Trossard","t":"Arsenal","k":"Goaliaths"},{"id":"26","n":"Gabriel Magalhães","t":"Arsenal","k":"Fortress"},{"id":"27","n":"Declan Rice","t":"Arsenal","k":"20th Anniversary"},{"id":"28","n":"Gianluigi Donnarumma","t":"Manchester City","k":"Basis"},{"id":"29","n":"Rúben Dias","t":"Manchester City","k":"Leader"},{"id":"30","n":"Marc Guéhi","t":"Manchester City","k":"Basis"},{"id":"31","n":"Abdukodir Khusanov","t":"Manchester City","k":"Basis"},{"id":"32","n":"Nico O'Reilly","t":"Manchester City","k":"Basis"},{"id":"33","n":"Rodri","t":"Manchester City","k":"Attax Master"},{"id":"34","n":"Tijjani Reijnders","t":"Manchester City","k":"Basis"},{"id":"35","n":"Phil Foden","t":"Manchester City","k":"Basis"},{"id":"36","n":"Rayan Cherki","t":"Manchester City","k":"Basis"},{"id":"37","n":"Antoine Semenyo","t":"Manchester City","k":"Basis"},{"id":"38","n":"Jérémy Doku","t":"Manchester City","k":"Basis"},{"id":"39","n":"Omar Marmoush","t":"Manchester City","k":"Basis"},{"id":"40","n":"Erling Haaland","t":"Manchester City","k":"Basis"},{"id":"41","n":"Savinho","t":"Manchester City","k":"Man of the Match"},{"id":"42","n":"Tijjani Reijnders","t":"Manchester City","k":"Power Play"},{"id":"43","n":"Phil Foden","t":"Manchester City","k":"Goaliaths"},{"id":"44","n":"Joško Gvardiol","t":"Manchester City","k":"Fortress"},{"id":"45","n":"Antoine Semenyo","t":"Manchester City","k":"20th Anniversary"},{"id":"46","n":"Senne Lammens","t":"Manchester United","k":"Basis"},{"id":"47","n":"Luke Shaw","t":"Manchester United","k":"Basis"},{"id":"48","n":"Leny Yoro","t":"Manchester United","k":"Basis"},{"id":"49","n":"Harry Maguire","t":"Manchester United","k":"Basis"},{"id":"50","n":"Patrick Dorgu","t":"Manchester United","k":"Basis"},{"id":"51","n":"Kobbie Mainoo","t":"Manchester United","k":"Basis"},{"id":"52","n":"Bruno Fernandes","t":"Manchester United","k":"Leader"},{"id":"53","n":"Manuel Ugarte","t":"Manchester United","k":"Basis"},{"id":"54","n":"JJ Gabriel","t":"Manchester United","k":"Attax Debutant"},{"id":"55","n":"Matheus Cunha","t":"Manchester United","k":"Basis"},{"id":"56","n":"Amad Diallo","t":"Manchester United","k":"Basis"},{"id":"57","n":"Bryan Mbeumo","t":"Manchester United","k":"Basis"},{"id":"58","n":"Benjamin Šeško","t":"Manchester United","k":"Basis"},{"id":"59","n":"Diogo Dalot","t":"Manchester United","k":"Man of the Match"},{"id":"60","n":"Mason Mount","t":"Manchester United","k":"Power Play"},{"id":"61","n":"Benjamin Šeško","t":"Manchester United","k":"Goaliaths"},{"id":"62","n":"Lisandro Martínez","t":"Manchester United","k":"Fortress"},{"id":"63","n":"Matheus Cunha","t":"Manchester United","k":"20th Anniversary"},{"id":"64","n":"Emiliano Martínez","t":"Aston Villa","k":"Basis"},{"id":"65","n":"Pau Torres","t":"Aston Villa","k":"Basis"},{"id":"66","n":"Ezri Konsa","t":"Aston Villa","k":"Basis"},{"id":"67","n":"Ian Maatsen","t":"Aston Villa","k":"Basis"},{"id":"68","n":"Matty Cash","t":"Aston Villa","k":"Basis"},{"id":"69","n":"Boubacar Kamara","t":"Aston Villa","k":"Basis"},{"id":"70","n":"Amadou Onana","t":"Aston Villa","k":"Basis"},{"id":"71","n":"Youri Tielemans","t":"Aston Villa","k":"Basis"},{"id":"72","n":"Morgan Rogers","t":"Aston Villa","k":"Basis"},{"id":"73","n":"John McGinn","t":"Aston Villa","k":"Leader"},{"id":"74","n":"Tammy Abraham","t":"Aston Villa","k":"Basis"},{"id":"75","n":"Alysson","t":"Aston Villa","k":"Attax Debutant"},{"id":"76","n":"Ollie Watkins","t":"Aston Villa","k":"Basis"},{"id":"77","n":"Lucas Digne","t":"Aston Villa","k":"Man of the Match"},{"id":"78","n":"Ollie Watkins","t":"Aston Villa","k":"Power Play"},{"id":"79","n":"Emiliano Buendía","t":"Aston Villa","k":"Goaliaths"},{"id":"80","n":"Tyrone Mings","t":"Aston Villa","k":"Fortress"},{"id":"81","n":"Morgan Rogers","t":"Aston Villa","k":"20th Anniversary"},{"id":"82","n":"Alisson Becker","t":"Liverpool","k":"Basis"},{"id":"83","n":"Virgil van Dijk","t":"Liverpool","k":"Leader"},{"id":"84","n":"Jérémy Jacquet","t":"Liverpool","k":"Attax Debutant"},{"id":"85","n":"Jeremie Frimpong","t":"Liverpool","k":"Basis"},{"id":"86","n":"Dominik Szoboszlai","t":"Liverpool","k":"Basis"},{"id":"87","n":"Alexis Mac Allister","t":"Liverpool","k":"Basis"},{"id":"88","n":"Ryan Gravenberch","t":"Liverpool","k":"Basis"},{"id":"89","n":"Florian Wirtz","t":"Liverpool","k":"Basis"},{"id":"90","n":"Víctor Muñoz","t":"Liverpool","k":"Basis"},{"id":"91","n":"Rio Ngumoha","t":"Liverpool","k":"Basis"},{"id":"92","n":"Alexander Isak","t":"Liverpool","k":"Basis"},{"id":"93","n":"Hugo Ekitiké","t":"Liverpool","k":"Basis"},{"id":"94","n":"Cody Gakpo","t":"Liverpool","k":"Basis"},{"id":"95","n":"Milos Kerkez","t":"Liverpool","k":"Man of the Match"},{"id":"96","n":"Alexander Isak","t":"Liverpool","k":"Power Play"},{"id":"97","n":"Hugo Ekitiké","t":"Liverpool","k":"Goaliaths"},{"id":"98","n":"Virgil van Dijk","t":"Liverpool","k":"Fortress"},{"id":"99","n":"Dominik Szoboszlai","t":"Liverpool","k":"20th Anniversary"},{"id":"100","n":"Djordje Petrović","t":"Bournemouth","k":"Basis"},{"id":"101","n":"Julio Soler","t":"Bournemouth","k":"Basis"},{"id":"102","n":"Bafodé Diakité","t":"Bournemouth","k":"Basis"},{"id":"103","n":"Veljko Milosavljević","t":"Bournemouth","k":"Basis"},{"id":"104","n":"Tyler Adams","t":"Bournemouth","k":"Leader"},{"id":"105","n":"Alex Scott","t":"Bournemouth","k":"Basis"},{"id":"106","n":"Alex Tóth","t":"Bournemouth","k":"Basis"},{"id":"107","n":"Justin Kluivert","t":"Bournemouth","k":"Basis"},{"id":"108","n":"David Brooks","t":"Bournemouth","k":"Basis"},{"id":"109","n":"Amine Adli","t":"Bournemouth","k":"Basis"},{"id":"110","n":"Rayan","t":"Bournemouth","k":"Attax Debutant"},{"id":"111","n":"Junior Kroupi","t":"Bournemouth","k":"Basis"},{"id":"112","n":"Evanilson","t":"Bournemouth","k":"Basis"},{"id":"113","n":"Rayan","t":"Bournemouth","k":"Man of the Match"},{"id":"114","n":"Tyler Adams","t":"Bournemouth","k":"Power Play"},{"id":"115","n":"Junior Kroupi","t":"Bournemouth","k":"Goaliaths"},{"id":"116","n":"James Hill","t":"Bournemouth","k":"Fortress"},{"id":"117","n":"Evanilson","t":"Bournemouth","k":"20th Anniversary"},{"id":"118","n":"","t":"Barcelona","k":"Basis"},{"id":"119","n":"","t":"Barcelona","k":"Basis"},{"id":"120","n":"","t":"Barcelona","k":"Basis"},{"id":"121","n":"","t":"Barcelona","k":"Basis"},{"id":"122","n":"","t":"Barcelona","k":"Basis"},{"id":"123","n":"","t":"Barcelona","k":"Basis"},{"id":"124","n":"","t":"Barcelona","k":"Basis"},{"id":"125","n":"","t":"Barcelona","k":"Basis"},{"id":"126","n":"","t":"Barcelona","k":"Basis"},{"id":"127","n":"","t":"Barcelona","k":"Basis"},{"id":"128","n":"","t":"Barcelona","k":"Basis"},{"id":"129","n":"","t":"Barcelona","k":"Basis"},{"id":"130","n":"","t":"Barcelona","k":"Basis"},{"id":"131","n":"","t":"Barcelona","k":"Man of the Match"},{"id":"132","n":"","t":"Barcelona","k":"Power Play"},{"id":"133","n":"","t":"Barcelona","k":"Goaliaths"},{"id":"134","n":"","t":"Barcelona","k":"Fortress"},{"id":"135","n":"","t":"Barcelona","k":"20th Anniversary"},{"id":"136","n":"","t":"Real Madrid","k":"Basis"},{"id":"137","n":"","t":"Real Madrid","k":"Basis"},{"id":"138","n":"","t":"Real Madrid","k":"Basis"},{"id":"139","n":"","t":"Real Madrid","k":"Basis"},{"id":"140","n":"","t":"Real Madrid","k":"Basis"},{"id":"141","n":"","t":"Real Madrid","k":"Basis"},{"id":"142","n":"","t":"Real Madrid","k":"Basis"},{"id":"143","n":"","t":"Real Madrid","k":"Basis"},{"id":"144","n":"","t":"Real Madrid","k":"Basis"},{"id":"145","n":"","t":"Real Madrid","k":"Basis"},{"id":"146","n":"","t":"Real Madrid","k":"Basis"},{"id":"147","n":"","t":"Real Madrid","k":"Basis"},{"id":"148","n":"","t":"Real Madrid","k":"Basis"},{"id":"149","n":"","t":"Real Madrid","k":"Man of the Match"},{"id":"150","n":"","t":"Real Madrid","k":"Power Play"},{"id":"151","n":"","t":"Real Madrid","k":"Goaliaths"},{"id":"152","n":"","t":"Real Madrid","k":"Fortress"},{"id":"153","n":"","t":"Real Madrid","k":"20th Anniversary"},{"id":"154","n":"","t":"Villarreal","k":"Basis"},{"id":"155","n":"","t":"Villarreal","k":"Basis"},{"id":"156","n":"","t":"Villarreal","k":"Basis"},{"id":"157","n":"","t":"Villarreal","k":"Basis"},{"id":"158","n":"","t":"Villarreal","k":"Basis"},{"id":"159","n":"","t":"Villarreal","k":"Basis"},{"id":"160","n":"","t":"Villarreal","k":"Basis"},{"id":"161","n":"","t":"Villarreal","k":"Basis"},{"id":"162","n":"","t":"Villarreal","k":"Basis"},{"id":"163","n":"","t":"Villarreal","k":"Basis"},{"id":"164","n":"","t":"Villarreal","k":"Basis"},{"id":"165","n":"","t":"Villarreal","k":"Basis"},{"id":"166","n":"","t":"Villarreal","k":"Basis"},{"id":"167","n":"","t":"Villarreal","k":"Man of the Match"},{"id":"168","n":"","t":"Villarreal","k":"Power Play"},{"id":"169","n":"","t":"Villarreal","k":"Goaliaths"},{"id":"170","n":"","t":"Villarreal","k":"Fortress"},{"id":"171","n":"","t":"Villarreal","k":"20th Anniversary"},{"id":"172","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"173","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"174","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"175","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"176","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"177","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"178","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"179","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"180","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"181","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"182","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"183","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"184","n":"","t":"Atlético Madrid","k":"Basis"},{"id":"185","n":"","t":"Atlético Madrid","k":"Man of the Match"},{"id":"186","n":"","t":"Atlético Madrid","k":"Power Play"},{"id":"187","n":"","t":"Atlético Madrid","k":"Goaliaths"},{"id":"188","n":"","t":"Atlético Madrid","k":"Fortress"},{"id":"189","n":"","t":"Atlético Madrid","k":"20th Anniversary"},{"id":"190","n":"","t":"Real Betis","k":"Basis"},{"id":"191","n":"","t":"Real Betis","k":"Basis"},{"id":"192","n":"","t":"Real Betis","k":"Basis"},{"id":"193","n":"","t":"Real Betis","k":"Basis"},{"id":"194","n":"","t":"Real Betis","k":"Basis"},{"id":"195","n":"","t":"Real Betis","k":"Basis"},{"id":"196","n":"","t":"Real Betis","k":"Basis"},{"id":"197","n":"","t":"Real Betis","k":"Basis"},{"id":"198","n":"","t":"Real Betis","k":"Basis"},{"id":"199","n":"","t":"Real Betis","k":"Basis"},{"id":"200","n":"","t":"Real Betis","k":"Basis"},{"id":"201","n":"","t":"Real Betis","k":"Basis"},{"id":"202","n":"","t":"Real Betis","k":"Basis"},{"id":"203","n":"","t":"Real Betis","k":"Man of the Match"},{"id":"204","n":"","t":"Real Betis","k":"Power Play"},{"id":"205","n":"","t":"Real Betis","k":"Goaliaths"},{"id":"206","n":"","t":"Real Betis","k":"Fortress"},{"id":"207","n":"","t":"Real Betis","k":"20th Anniversary"},{"id":"208","n":"","t":"Bayern München","k":"Basis"},{"id":"209","n":"","t":"Bayern München","k":"Basis"},{"id":"210","n":"","t":"Bayern München","k":"Basis"},{"id":"211","n":"","t":"Bayern München","k":"Basis"},{"id":"212","n":"","t":"Bayern München","k":"Basis"},{"id":"213","n":"","t":"Bayern München","k":"Basis"},{"id":"214","n":"","t":"Bayern München","k":"Basis"},{"id":"215","n":"","t":"Bayern München","k":"Basis"},{"id":"216","n":"","t":"Bayern München","k":"Basis"},{"id":"217","n":"","t":"Bayern München","k":"Basis"},{"id":"218","n":"","t":"Bayern München","k":"Basis"},{"id":"219","n":"","t":"Bayern München","k":"Basis"},{"id":"220","n":"","t":"Bayern München","k":"Basis"},{"id":"221","n":"","t":"Bayern München","k":"Man of the Match"},{"id":"222","n":"","t":"Bayern München","k":"Power Play"},{"id":"223","n":"","t":"Bayern München","k":"Goaliaths"},{"id":"224","n":"","t":"Bayern München","k":"Fortress"},{"id":"225","n":"","t":"Bayern München","k":"20th Anniversary"},{"id":"226","n":"","t":"Dortmund","k":"Basis"},{"id":"227","n":"","t":"Dortmund","k":"Basis"},{"id":"228","n":"","t":"Dortmund","k":"Basis"},{"id":"229","n":"","t":"Dortmund","k":"Basis"},{"id":"230","n":"","t":"Dortmund","k":"Basis"},{"id":"231","n":"","t":"Dortmund","k":"Basis"},{"id":"232","n":"","t":"Dortmund","k":"Basis"},{"id":"233","n":"","t":"Dortmund","k":"Basis"},{"id":"234","n":"","t":"Dortmund","k":"Basis"},{"id":"235","n":"","t":"Dortmund","k":"Basis"},{"id":"236","n":"","t":"Dortmund","k":"Basis"},{"id":"237","n":"","t":"Dortmund","k":"Basis"},{"id":"238","n":"","t":"Dortmund","k":"Basis"},{"id":"239","n":"","t":"Dortmund","k":"Man of the Match"},{"id":"240","n":"","t":"Dortmund","k":"Power Play"},{"id":"241","n":"","t":"Dortmund","k":"Goaliaths"},{"id":"242","n":"","t":"Dortmund","k":"Fortress"},{"id":"243","n":"","t":"Dortmund","k":"20th Anniversary"},{"id":"244","n":"","t":"RB Leipzig","k":"Basis"},{"id":"245","n":"","t":"RB Leipzig","k":"Basis"},{"id":"246","n":"","t":"RB Leipzig","k":"Basis"},{"id":"247","n":"","t":"RB Leipzig","k":"Basis"},{"id":"248","n":"","t":"RB Leipzig","k":"Basis"},{"id":"249","n":"","t":"RB Leipzig","k":"Basis"},{"id":"250","n":"","t":"RB Leipzig","k":"Basis"},{"id":"251","n":"","t":"RB Leipzig","k":"Basis"},{"id":"252","n":"","t":"RB Leipzig","k":"Basis"},{"id":"253","n":"","t":"RB Leipzig","k":"Basis"},{"id":"254","n":"","t":"RB Leipzig","k":"Basis"},{"id":"255","n":"","t":"RB Leipzig","k":"Basis"},{"id":"256","n":"","t":"RB Leipzig","k":"Basis"},{"id":"257","n":"","t":"RB Leipzig","k":"Man of the Match"},{"id":"258","n":"","t":"RB Leipzig","k":"Power Play"},{"id":"259","n":"","t":"RB Leipzig","k":"Goaliaths"},{"id":"260","n":"","t":"RB Leipzig","k":"Fortress"},{"id":"261","n":"","t":"RB Leipzig","k":"20th Anniversary"},{"id":"262","n":"","t":"Stuttgart","k":"Basis"},{"id":"263","n":"","t":"Stuttgart","k":"Basis"},{"id":"264","n":"","t":"Stuttgart","k":"Basis"},{"id":"265","n":"","t":"Stuttgart","k":"Basis"},{"id":"266","n":"","t":"Stuttgart","k":"Basis"},{"id":"267","n":"","t":"Stuttgart","k":"Basis"},{"id":"268","n":"","t":"Stuttgart","k":"Basis"},{"id":"269","n":"","t":"Stuttgart","k":"Basis"},{"id":"270","n":"","t":"Stuttgart","k":"Basis"},{"id":"271","n":"","t":"Stuttgart","k":"Basis"},{"id":"272","n":"","t":"Stuttgart","k":"Basis"},{"id":"273","n":"","t":"Stuttgart","k":"Basis"},{"id":"274","n":"","t":"Stuttgart","k":"Basis"},{"id":"275","n":"","t":"Stuttgart","k":"Man of the Match"},{"id":"276","n":"","t":"Stuttgart","k":"Power Play"},{"id":"277","n":"","t":"Stuttgart","k":"Goaliaths"},{"id":"278","n":"","t":"Stuttgart","k":"Fortress"},{"id":"279","n":"","t":"Stuttgart","k":"20th Anniversary"},{"id":"280","n":"Mark Flekken","t":"Leverkusen","k":"Basis"},{"id":"281","n":"Arthur","t":"Leverkusen","k":"Basis"},{"id":"282","n":"Loïc Badé","t":"Leverkusen","k":"Basis"},{"id":"283","n":"Edmond Tapsoba","t":"Leverkusen","k":"Basis"},{"id":"284","n":"Robert Andrich","t":"Leverkusen","k":"Leader"},{"id":"285","n":"Exequiel Palacios","t":"Leverkusen","k":"Basis"},{"id":"286","n":"Aleix García","t":"Leverkusen","k":"Basis"},{"id":"287","n":"Malik Tillman","t":"Leverkusen","k":"Basis"},{"id":"288","n":"Ibrahim Maza","t":"Leverkusen","k":"Basis"},{"id":"289","n":"Kerim Alajbegović","t":"Leverkusen","k":"Attax Debutant"},{"id":"290","n":"Ernest Poku","t":"Leverkusen","k":"Basis"},{"id":"291","n":"Eliesse Ben Seghir","t":"Leverkusen","k":"Basis"},{"id":"292","n":"Patrik Schick","t":"Leverkusen","k":"Basis"},{"id":"293","n":"Equi Fernández","t":"Leverkusen","k":"Man of the Match"},{"id":"294","n":"Lucas Vázquez","t":"Leverkusen","k":"Power Play"},{"id":"295","n":"Christian Kofane","t":"Leverkusen","k":"Goaliaths"},{"id":"296","n":"Jarell Quansah","t":"Leverkusen","k":"Fortress"},{"id":"297","n":"Malik Tillman","t":"Leverkusen","k":"20th Anniversary"},{"id":"298","n":"Nehuén Pérez","t":"Porto","k":"Basis"},{"id":"299","n":"Jan Bednarek","t":"Porto","k":"Basis"},{"id":"300","n":"Jakub Kiwior","t":"Porto","k":"Basis"},{"id":"301","n":"Zaidu Sanusi","t":"Porto","k":"Basis"},{"id":"302","n":"Francisco Moura","t":"Porto","k":"Basis"},{"id":"303","n":"Alberto Costa","t":"Porto","k":"Basis"},{"id":"304","n":"Alan Varela","t":"Porto","k":"Leader"},{"id":"305","n":"Victor Froholdt","t":"Porto","k":"Attax Debutant"},{"id":"306","n":"Gabri Veiga","t":"Porto","k":"Basis"},{"id":"307","n":"Rodrigo Mora","t":"Porto","k":"Basis"},{"id":"308","n":"Borja Sainz","t":"Porto","k":"Basis"},{"id":"309","n":"Pepê","t":"Porto","k":"Basis"},{"id":"310","n":"Samu Aghehowa","t":"Porto","k":"Basis"},{"id":"311","n":"William Gomes","t":"Porto","k":"Man of the Match"},{"id":"312","n":"Samu Aghehowa","t":"Porto","k":"Power Play"},{"id":"313","n":"Rodrigo Mora","t":"Porto","k":"Goaliaths"},{"id":"314","n":"Alan Varela","t":"Porto","k":"Fortress"},{"id":"315","n":"Gabri Veiga","t":"Porto","k":"20th Anniversary"},{"id":"316","n":"Amar Dedić","t":"Benfica","k":"Basis"},{"id":"317","n":"António Silva","t":"Benfica","k":"Leader"},{"id":"318","n":"Tomás Araújo","t":"Benfica","k":"Basis"},{"id":"319","n":"Samuel Dahl","t":"Benfica","k":"Attax Debutant"},{"id":"320","n":"Richard Ríos","t":"Benfica","k":"Basis"},{"id":"321","n":"Fredrik Aursnes","t":"Benfica","k":"Basis"},{"id":"322","n":"Leandro Barreiro","t":"Benfica","k":"Basis"},{"id":"323","n":"João Rêgo","t":"Benfica","k":"Basis"},{"id":"324","n":"Georgiy Sudakov","t":"Benfica","k":"Basis"},{"id":"325","n":"Dodi Lukébakio","t":"Benfica","k":"Basis"},{"id":"326","n":"Vangelis Pavlidis","t":"Benfica","k":"Basis"},{"id":"327","n":"Anísio Cabral","t":"Benfica","k":"Basis"},{"id":"328","n":"Bruma","t":"Benfica","k":"Basis"},{"id":"329","n":"Rafa Silva","t":"Benfica","k":"Man of the Match"},{"id":"330","n":"Fredrik Aursnes","t":"Benfica","k":"Power Play"},{"id":"331","n":"Franjo Ivanović","t":"Benfica","k":"Goaliaths"},{"id":"332","n":"Alexander Bah","t":"Benfica","k":"Fortress"},{"id":"333","n":"Vangelis Pavlidis","t":"Benfica","k":"20th Anniversary"},{"id":"334","n":"Lucas Chevalier","t":"Paris SG","k":"Basis"},{"id":"335","n":"Marquinhos","t":"Paris SG","k":"Leader"},{"id":"336","n":"Willian Pacho","t":"Paris SG","k":"Basis"},{"id":"337","n":"Achraf Hakimi","t":"Paris SG","k":"Basis"},{"id":"338","n":"Nuno Mendes","t":"Paris SG","k":"Attax Master"},{"id":"339","n":"João Neves","t":"Paris SG","k":"Basis"},{"id":"340","n":"Warren Zaïre-Emery","t":"Paris SG","k":"Basis"},{"id":"341","n":"Vitinha","t":"Paris SG","k":"Basis"},{"id":"342","n":"Senny Mayulu","t":"Paris SG","k":"Basis"},{"id":"343","n":"Bradley Barcola","t":"Paris SG","k":"Basis"},{"id":"344","n":"Désiré Doué","t":"Paris SG","k":"Basis"},{"id":"345","n":"Khvicha Kvaratskhelia","t":"Paris SG","k":"Basis"},{"id":"346","n":"Ousmane Dembélé","t":"Paris SG","k":"Basis"},{"id":"347","n":"Ibrahim Mbaye","t":"Paris SG","k":"Man of the Match"},{"id":"348","n":"Fabián Ruiz","t":"Paris SG","k":"Power Play"},{"id":"349","n":"Dro Fernández","t":"Paris SG","k":"Goaliaths"},{"id":"350","n":"Illia Zabarnyi","t":"Paris SG","k":"Fortress"},{"id":"351","n":"Khvicha Kvaratskhelia","t":"Paris SG","k":"20th Anniversary"},{"id":"352","n":"Aleksa Terzić","t":"Salzburg","k":"Basis"},{"id":"353","n":"Frans Krätzig","t":"Salzburg","k":"Attax Debutant"},{"id":"354","n":"Stefan Lainer","t":"Salzburg","k":"Basis"},{"id":"355","n":"Dominik Schmid","t":"Salzburg","k":"Basis"},{"id":"356","n":"Kévin Boma","t":"Salzburg","k":"Basis"},{"id":"357","n":"Maurits Kjærgaard","t":"Salzburg","k":"Leader"},{"id":"358","n":"Soumaila Diabaté","t":"Salzburg","k":"Basis"},{"id":"359","n":"Sota Kitano","t":"Salzburg","k":"Basis"},{"id":"360","n":"Nikolas Veratschnig","t":"Salzburg","k":"Basis"},{"id":"361","n":"Yorbe Vertessen","t":"Salzburg","k":"Basis"},{"id":"362","n":"Edmund Baidoo","t":"Salzburg","k":"Basis"},{"id":"363","n":"Clement Bischoff","t":"Salzburg","k":"Basis"},{"id":"364","n":"Karim Konaté","t":"Salzburg","k":"Basis"},{"id":"365","n":"Frans Krätzig","t":"Salzburg","k":"Man of the Match"},{"id":"366","n":"Clement Bischoff","t":"Salzburg","k":"Power Play"},{"id":"367","n":"Edmund Baidoo","t":"Salzburg","k":"Goaliaths"},{"id":"368","n":"Tim Drexler","t":"Salzburg","k":"Fortress"},{"id":"369","n":"Yorbe Vertessen","t":"Salzburg","k":"20th Anniversary"},{"id":"370","n":"Sergiño Dest","t":"PSV Eindhoven","k":"Basis"},{"id":"371","n":"Yarek Gasiorowski","t":"PSV Eindhoven","k":"Basis"},{"id":"372","n":"Ryan Flamingo","t":"PSV Eindhoven","k":"Basis"},{"id":"373","n":"Mauro Júnior","t":"PSV Eindhoven","k":"Basis"},{"id":"374","n":"Jerdy Schouten","t":"PSV Eindhoven","k":"Leader"},{"id":"375","n":"Joey Veerman","t":"PSV Eindhoven","k":"Basis"},{"id":"376","n":"Paul Wanner","t":"PSV Eindhoven","k":"Basis"},{"id":"377","n":"Guus Til","t":"PSV Eindhoven","k":"Basis"},{"id":"378","n":"Ricardo Pepi","t":"PSV Eindhoven","k":"Basis"},{"id":"379","n":"Esmir Bajraktarević","t":"PSV Eindhoven","k":"Attax Debutant"},{"id":"380","n":"Dennis Man","t":"PSV Eindhoven","k":"Basis"},{"id":"381","n":"Ruben van Bommel","t":"PSV Eindhoven","k":"Basis"},{"id":"382","n":"Ivan Perišić","t":"PSV Eindhoven","k":"Basis"},{"id":"383","n":"Ricardo Pepi","t":"PSV Eindhoven","k":"Man of the Match"},{"id":"384","n":"Ivan Perišić","t":"PSV Eindhoven","k":"Power Play"},{"id":"385","n":"Couhaib Driouech","t":"PSV Eindhoven","k":"Goaliaths"},{"id":"386","n":"Armando Obispo","t":"PSV Eindhoven","k":"Fortress"},{"id":"387","n":"Guus Til","t":"PSV Eindhoven","k":"20th Anniversary"},{"id":"388","n":"Alessandro Bastoni","t":"Inter Mailand","k":"Basis"},{"id":"389","n":"Federico Dimarco","t":"Inter Mailand","k":"Attax Master"},{"id":"390","n":"Yann-Aurel Bisseck","t":"Inter Mailand","k":"Basis"},{"id":"391","n":"Carlos Augusto","t":"Inter Mailand","k":"Basis"},{"id":"392","n":"Piotr Zieliński","t":"Inter Mailand","k":"Basis"},{"id":"393","n":"Davide Frattesi","t":"Inter Mailand","k":"Basis"},{"id":"394","n":"Petar Sučić","t":"Inter Mailand","k":"Basis"},{"id":"395","n":"Hakan Çalhanoğlu","t":"Inter Mailand","k":"Basis"},{"id":"396","n":"Nicolò Barella","t":"Inter Mailand","k":"Basis"},{"id":"397","n":"Pio Esposito","t":"Inter Mailand","k":"Basis"},{"id":"398","n":"Ange-Yoan Bonny","t":"Inter Mailand","k":"Basis"},{"id":"399","n":"Lautaro Martínez","t":"Inter Mailand","k":"Leader"},{"id":"400","n":"Marcus Thuram","t":"Inter Mailand","k":"Basis"},{"id":"401","n":"Luis Henrique","t":"Inter Mailand","k":"Man of the Match"},{"id":"402","n":"Andy Diouf","t":"Inter Mailand","k":"Power Play"},{"id":"403","n":"Piotr Zieliński","t":"Inter Mailand","k":"Goaliaths"},{"id":"404","n":"Manuel Akanji","t":"Inter Mailand","k":"Fortress"},{"id":"405","n":"Hakan Çalhanoğlu","t":"Inter Mailand","k":"20th Anniversary"},{"id":"406","n":"Marco Carnesecchi","t":"Atalanta","k":"Basis"},{"id":"407","n":"Davide Zappacosta","t":"Atalanta","k":"Basis"},{"id":"408","n":"Isak Hien","t":"Atalanta","k":"Basis"},{"id":"409","n":"Giorgio Scalvini","t":"Atalanta","k":"Basis"},{"id":"410","n":"Honest Ahanor","t":"Atalanta","k":"Attax Debutant"},{"id":"411","n":"Marten de Roon","t":"Atalanta","k":"Leader"},{"id":"412","n":"Raoul Bellanova","t":"Atalanta","k":"Basis"},{"id":"413","n":"Charles De Ketelaere","t":"Atalanta","k":"Basis"},{"id":"414","n":"Mario Pašalić","t":"Atalanta","k":"Basis"},{"id":"415","n":"Nicola Zalewski","t":"Atalanta","k":"Basis"},{"id":"416","n":"Lazar Samardžić","t":"Atalanta","k":"Basis"},{"id":"417","n":"Giacomo Raspadori","t":"Atalanta","k":"Basis"},{"id":"418","n":"Kamaldeen Sulemana","t":"Atalanta","k":"Basis"},{"id":"419","n":"Lorenzo Bernasconi","t":"Atalanta","k":"Man of the Match"},{"id":"420","n":"Odilon Kossounou","t":"Atalanta","k":"Power Play"},{"id":"421","n":"Nikola Krstović","t":"Atalanta","k":"Goaliaths"},{"id":"422","n":"Berat Djimsiti","t":"Atalanta","k":"Fortress"},{"id":"423","n":"Gianluca Scamacca","t":"Atalanta","k":"20th Anniversary"},{"id":"424","n":"Mike Maignan","t":"AC Mailand","k":"Leader"},{"id":"425","n":"Fikayo Tomori","t":"AC Mailand","k":"Basis"},{"id":"426","n":"Koni De Winter","t":"AC Mailand","k":"Basis"},{"id":"427","n":"Matteo Gabbia","t":"AC Mailand","k":"Basis"},{"id":"428","n":"Strahinja Pavlović","t":"AC Mailand","k":"Basis"},{"id":"429","n":"Youssouf Fofana","t":"AC Mailand","k":"Basis"},{"id":"430","n":"Adrien Rabiot","t":"AC Mailand","k":"Basis"},{"id":"431","n":"Samuele Ricci","t":"AC Mailand","k":"Attax Debutant"},{"id":"432","n":"Luka Modrić","t":"AC Mailand","k":"Basis"},{"id":"433","n":"Alexis Saelemaekers","t":"AC Mailand","k":"Basis"},{"id":"434","n":"Christian Pulisic","t":"AC Mailand","k":"Basis"},{"id":"435","n":"Rafael Leão","t":"AC Mailand","k":"Basis"},{"id":"436","n":"Santiago Giménez","t":"AC Mailand","k":"Basis"},{"id":"437","n":"Davide Bartesaghi","t":"AC Mailand","k":"Man of the Match"},{"id":"438","n":"Alexis Saelemaekers","t":"AC Mailand","k":"Power Play"},{"id":"439","n":"Christopher Nkunku","t":"AC Mailand","k":"Goaliaths"},{"id":"440","n":"Strahinja Pavlović","t":"AC Mailand","k":"Fortress"},{"id":"441","n":"Christian Pulisic","t":"AC Mailand","k":"20th Anniversary"},{"id":"442","n":"Michele Di Gregorio","t":"Juventus","k":"Basis"},{"id":"443","n":"Pierre Kalulu","t":"Juventus","k":"Basis"},{"id":"444","n":"Andrea Cambiaso","t":"Juventus","k":"Basis"},{"id":"445","n":"Lloyd Kelly","t":"Juventus","k":"Attax Debutant"},{"id":"446","n":"Bremer","t":"Juventus","k":"Basis"},{"id":"447","n":"Khéphren Thuram","t":"Juventus","k":"Basis"},{"id":"448","n":"Manuel Locatelli","t":"Juventus","k":"Leader"},{"id":"449","n":"Teun Koopmeiners","t":"Juventus","k":"Basis"},{"id":"450","n":"Weston McKennie","t":"Juventus","k":"Basis"},{"id":"451","n":"Fabio Miretti","t":"Juventus","k":"Basis"},{"id":"452","n":"Jonathan David","t":"Juventus","k":"Basis"},{"id":"453","n":"Francisco Conceição","t":"Juventus","k":"Basis"},{"id":"454","n":"Kenan Yıldız","t":"Juventus","k":"Basis"},{"id":"455","n":"Edon Zhegrova","t":"Juventus","k":"Man of the Match"},{"id":"456","n":"Weston McKennie","t":"Juventus","k":"Power Play"},{"id":"457","n":"Loïs Openda","t":"Juventus","k":"Goaliaths"},{"id":"458","n":"Federico Gatti","t":"Juventus","k":"Fortress"},{"id":"459","n":"Khéphren Thuram","t":"Juventus","k":"20th Anniversary"},{"id":"460","n":"Viktor Gyökeres","t":"Sonderserie","k":"Slick"},{"id":"461","n":"Erling Haaland","t":"Sonderserie","k":"Slick"},{"id":"462","n":"Morgan Rogers","t":"Sonderserie","k":"Slick"},{"id":"463","n":"Rio Ngumoha","t":"Sonderserie","k":"Slick"},{"id":"464","n":"Vinícius Júnior","t":"Sonderserie","k":"Slick"},{"id":"465","n":"Serhou Guirassy","t":"Sonderserie","k":"Slick"},{"id":"466","n":"Bradley Barcola","t":"Sonderserie","k":"Slick"},{"id":"467","n":"Lautaro Martínez","t":"Sonderserie","k":"Slick"},{"id":"468","n":"Kenan Yıldız","t":"Sonderserie","k":"Slick"},{"id":"469","n":"Rayan Cherki","t":"Sonderserie","k":"Genuine Genius"},{"id":"470","n":"Bruno Fernandes","t":"Sonderserie","k":"Genuine Genius"},{"id":"471","n":"Amad Diallo","t":"Sonderserie","k":"Genuine Genius"},{"id":"472","n":"Florian Wirtz","t":"Sonderserie","k":"Genuine Genius"},{"id":"473","n":"Pedri","t":"Sonderserie","k":"Genuine Genius"},{"id":"474","n":"Jude Bellingham","t":"Sonderserie","k":"Genuine Genius"},{"id":"475","n":"Jamal Musiala","t":"Sonderserie","k":"Genuine Genius"},{"id":"476","n":"João Neves","t":"Sonderserie","k":"Genuine Genius"},{"id":"477","n":"Federico Dimarco","t":"Sonderserie","k":"Genuine Genius"},{"id":"478","n":"Manuel Neuer","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"479","n":"Paolo Maldini","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"480","n":"Franz Beckenbauer","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"481","n":"Andrés Iniesta","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"482","n":"Luka Modrić","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"483","n":"Lionel Messi","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"484","n":"Ronaldo","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"485","n":"Thierry Henry","t":"Sonderserie","k":"All-Time 100 Club"},{"id":"486","n":"Ronaldinho","t":"Sonderserie","k":"Unbeatable 101"},{"id":"487","n":"Gabriel Magalhães","t":"Sonderserie","k":"Supreme Master"},{"id":"488","n":"Kylian Mbappé","t":"Sonderserie","k":"Supreme Master"},{"id":"489","n":"Harry Kane","t":"Sonderserie","k":"Supreme Master"},{"id":"490","n":"Khvicha Kvaratskhelia","t":"Sonderserie","k":"Supreme Master"},{"id":"491","n":"Kenan Yıldız","t":"Sonderserie","k":"Supreme Master"},{"id":"AOH1","n":"Hugo Ekitiké","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH2","n":"Raphinha","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH3","n":"Harry Kane","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH4","n":"Lautaro Martínez","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH5","n":"Bryan Mbeumo","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH6","n":"Lamine Yamal","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH7","n":"Désiré Doué","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH8","n":"Rodrigo Mora","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH9","n":"Erling Haaland","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH10","n":"Jude Bellingham","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH11","n":"Karim Adeyemi","t":"Limited Edition","k":"Age of Heroes"},{"id":"AOH12","n":"João Neves","t":"Limited Edition","k":"Age of Heroes"},{"id":"GH1","n":"Bukayo Saka","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH2","n":"Julián Álvarez","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH3","n":"SL Benfica","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH4","n":"Ousmane Dembélé","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH5","n":"Max Dowman","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH6","n":"Franco Mastantuono","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH7","n":"Lennart Karl","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH8","n":"Kenan Yıldız","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH9","n":"Bruno Fernandes","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH10","n":"Kylian Mbappé","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH11","n":"Borussia Dortmund","t":"Limited Edition","k":"Greatest Hits"},{"id":"GH12","n":"Vitinha","t":"Limited Edition","k":"Greatest Hits"},{"id":"LE1","n":"Thierry Henry","t":"Limited Edition","k":"Legends"},{"id":"LE2","n":"Ryan Giggs","t":"Limited Edition","k":"Legends"},{"id":"LE3","n":"Lionel Messi","t":"Limited Edition","k":"Legends"},{"id":"LE4","n":"Luís Figo","t":"Limited Edition","k":"Legends"},{"id":"LE5","n":"Lothar Matthäus","t":"Limited Edition","k":"Legends"},{"id":"LE6","n":"Mario Balotelli","t":"Limited Edition","k":"Legends"},{"id":"LE7","n":"Ruud Gullit","t":"Limited Edition","k":"Legends"},{"id":"BN1","n":"Eberechi Eze","t":"Limited Edition","k":"Black Nitro"},{"id":"WH1","n":"Désiré Doué","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH2","n":"Florian Wirtz","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH3","n":"Harry Kane","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH4","n":"Jamal Musiala","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH5","n":"Lionel Messi","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH6","n":"Max Dowman","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH7","n":"Pio Esposito","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH8","n":"Rayan Cherki","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH9","n":"Ronaldo","t":"Sonderserie","k":"WHOOSH!"},{"id":"WH10","n":"","t":"Sonderserie","k":"WHOOSH!"},{"id":"EN1","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN2","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN3","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN4","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN5","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN6","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN7","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN8","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN9","n":"","t":"Sonderserie","k":"Enigma"},{"id":"EN10","n":"","t":"Sonderserie","k":"Enigma"},{"id":"MY1","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY2","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY3","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY4","n":"","t":"Sonderserie","k":"Mystical"},{"id":"MY5","n":"","t":"Sonderserie","k":"Mystical"},{"id":"FE 1","n":"Max Dowman","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 2","n":"Erling Haaland","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 3","n":"Matheus Cunha","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 4","n":"Dominik Szoboszlai","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 5","n":"Raphinha","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 6","n":"Viní Jr.","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 7","n":"Ademola Lookman","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 8","n":"Harry Kane","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 9","n":"Kylian Mbappé","t":"Sonderserie","k":"Festive Edition"},{"id":"FE 10","n":"Anthony Gordon","t":"Sonderserie","k":"Festive Edition"},{"id":"T1","n":"Agent / Referee / VAR / Injury","t":"Sonderserie","k":"Taktikkarte"}];
 const STORAGE='match-attax-26-27-v2';
@@ -554,14 +563,14 @@ function render(){
     const n=counts[card.id]||0;
     const assignedName=cardName(card);
     const player=assignedName && assignedName.trim() ? assignedName : 'Karte '+card.id;
-    return `<article class="card design-${designKind(card.k)} ${n?'owned':''}">
+    return `<article class="card design-${designKind(card.k)} ${n?'owned':''}" data-card-id="${escapeHTML(card.id)}" role="button" tabindex="0" aria-label="Karte ${escapeHTML(card.id)}, ${escapeHTML(player)}, ${n?'vorhanden':'fehlt'}. Antippen zum Umschalten." aria-pressed="${Boolean(n)}">
       <div class="corner-check">✓</div>
       <div class="card-head">
         <div class="badge">${escapeHTML(card.k)}</div>
         <div class="num">#${escapeHTML(card.id)}</div>
       </div>
       <div class="art">
-        ${scannedUrls[card.id]?`<img class="card-scan-photo" alt="Fotografierte Karte #${escapeHTML(card.id)}" src="${scannedUrls[card.id]}">`:''}
+        
         <div class="design-geometry" aria-hidden="true"></div>
         <div class="silhouette"></div>
         <div class="initials">${escapeHTML(initials(player))}</div>
@@ -572,7 +581,7 @@ function render(){
       <div class="card-body">
         <div class="player">${escapeHTML(player)}</div>
         <div class="meta"><span>${escapeHTML(card.t)}</span><span class="dot"></span><span>${escapeHTML(card.k)}</span></div>
-        <div class="scan-name-row"><button type="button" class="edit-name" data-act="edit" data-id="${escapeHTML(card.id)}">✎ ${assignedName?'Name bearbeiten':'Spielername eintragen'}</button><button type="button" class="scan-launch ${scannedUrls[card.id]?'has-scan':''}" data-act="scan" data-id="${escapeHTML(card.id)}">${scannedUrls[card.id]?'Foto ✓':'Kamera'}</button></div>
+        <div class="scan-name-row"><button type="button" class="edit-name" data-act="edit" data-id="${escapeHTML(card.id)}">✎ ${assignedName?'Name bearbeiten':'Spielername eintragen'}</button></div>
         <div class="actions">
           <button class="toggle" data-id="${escapeHTML(card.id)}" data-act="toggle">${n?'Vorhanden ✓':'Abhaken'}</button>
           <div class="qty">
@@ -586,16 +595,25 @@ function render(){
   }).join('') : '<div class="empty">Keine passenden Karten gefunden.</div>';
   refreshPanels();
 }
+// Die ganze Karte ist eine Touchfläche. Interaktive Unterelemente behalten ihre eigene Aktion.
 $('grid').addEventListener('click',e=>{
   const btn=e.target.closest('button[data-act]');
-  if(!btn) return;
-  const id=btn.dataset.id;
-  const act=btn.dataset.act;
-  if(act==='edit') {openNameEditor(id);return;}
-  if(act==='scan') {openScanner(id);return;}
-  if(act==='plus') step(id,1);
-  else if(act==='minus') step(id,-1);
-  else toggle(id);
+  if(btn){
+    const id=btn.dataset.id;
+    const act=btn.dataset.act;
+    if(act==='edit') {openNameEditor(id);return;}
+    if(act==='plus') step(id,1);
+    else if(act==='minus') step(id,-1);
+    else toggle(id);
+    return;
+  }
+  const card=e.target.closest('article[data-card-id]');
+  if(card && $('grid').contains(card)) toggle(card.dataset.cardId);
+});
+$('grid').addEventListener('keydown',e=>{
+  if(e.target.matches('article[data-card-id]') && (e.key==='Enter'||e.key===' ')){
+    e.preventDefault();toggle(e.target.dataset.cardId);
+  }
 });
 function openNameEditor(id){
   const card=cards.find(c=>c.id===id); if(!card)return;
@@ -604,7 +622,7 @@ function openNameEditor(id){
   $('editTitle').textContent='Karte #'+id+' bearbeiten';
   $('editRemove').hidden=!Object.prototype.hasOwnProperty.call(customNames,id);
   $('editDialog').showModal();
-  $('editPlayerName').focus();
+  // Kein automatisches Fokussieren: verhindert das sofortige Öffnen der iOS-Tastatur.
 }
 $('editCancel').onclick=()=>$('editDialog').close();
 $('editForm').addEventListener('submit',e=>{
@@ -739,171 +757,111 @@ $('csvMissing').addEventListener('click',()=>{
 });
 
 
-// V10: Fotos werden lokal in IndexedDB gespeichert. Es gibt noch KEINE geräteübergreifende Fotosynchronisierung.
-const SCAN_DB='match-attax-card-photos-v1',SCAN_STORE='photos';
-const scannedUrls=Object.create(null);
-let scanDbPromise=null;
-function photoDb(){
- if(!('indexedDB' in window))return Promise.reject(new Error('Dieser Browser unterstützt keine lokale Fotodatenbank.'));
- if(!scanDbPromise)scanDbPromise=new Promise((resolve,reject)=>{
-  const req=indexedDB.open(SCAN_DB,1);
-  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(SCAN_STORE))req.result.createObjectStore(SCAN_STORE)};
-  req.onsuccess=()=>resolve(req.result);
-  req.onerror=()=>reject(req.error);
- });
- return scanDbPromise;
+// V11: Nur Nummernerkennung. Keine Kartenscans oder Bilder werden gespeichert.
+// Der schnelle Nummernscanner arbeitet unabhängig vom manuellen Kartenzuschnitt.
+let autoObjectUrl=null, autoWorker=null;
+function autoLabel(card){return '#'+card.id+' · '+(cardName(card)||'Name nicht hinterlegt')+' · '+card.k;}
+function autoSetOptions(recommended=[]){
+ const el=$('autoScanSelect');el.replaceChildren();
+ const empty=new Option('Kartennummer auswählen','');el.add(empty);
+ const seen=new Set();
+ for(const id of [...recommended,...cards.map(c=>c.id)]){
+  if(seen.has(id))continue;seen.add(id);
+  const c=cards.find(x=>x.id===id);if(!c)continue;
+  const opt=new Option((recommended.includes(id)?'✓ Vorschlag: ':'')+autoLabel(c),id);el.add(opt);
+ }
+ if(recommended.length)el.value=recommended[0];
+ $('autoScanConfirm').disabled=!el.value;
 }
-async function storePhoto(id,blob){
- const db=await photoDb();
- return new Promise((resolve,reject)=>{
-  const tx=db.transaction(SCAN_STORE,'readwrite');
-  tx.objectStore(SCAN_STORE).put(blob,id);
-  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
- });
+function autoRankMatches(raw){
+ const text=raw.toLocaleUpperCase('de');
+ const cleaned=text.replace(/[‐‑–—]/g,'-');
+ const words=cleaned.match(/[A-Z]{1,4}\s*[- ]?\s*\d{1,3}|\d{1,3}/g)||[];
+ const scores=new Map();
+ for(const c of cards){
+  const id=c.id.toUpperCase().replace(/\s+/g,'');let score=0;
+  // Nur vollständige Worttreffer zulassen, um 1 nicht mit 101 zu verwechseln.
+  const spaced=cleaned.replace(/\s+/g,'');
+  if(/^[A-Z]/.test(id)){
+   if(new RegExp('(^|[^A-Z0-9])'+id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'($|[^A-Z0-9])').test(cleaned.replace(/\s+/g,' ')))score+=10;
+   if(words.some(w=>w.replace(/[\s-]/g,'')===id))score+=8;
+  }else{
+   if(words.some(w=>w.trim()===id))score+=5;
+  }
+  const player=cardName(c).toLocaleUpperCase('de').trim();
+  if(player.length>4 && cleaned.includes(player))score+=9;
+  else if(player.length>5){const last=player.split(/\s+/).at(-1);if(last.length>4&&cleaned.includes(last))score+=3}
+  if(score) scores.set(c.id,score);
+ }
+ return [...scores.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
 }
-async function removePhoto(id){
- const db=await photoDb();
- return new Promise((resolve,reject)=>{
-  const tx=db.transaction(SCAN_STORE,'readwrite');tx.objectStore(SCAN_STORE).delete(id);
-  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
- });
+async function autoLoadOCR(){
+ if(!window.Tesseract){
+  await new Promise((resolve,reject)=>{
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+   script.onload=resolve;script.onerror=()=>reject(Error('Texterkennung konnte nicht geladen werden. Internetverbindung prüfen.'));
+   document.head.append(script);
+  });
+ }
+ if(!autoWorker)autoWorker=await window.Tesseract.createWorker('eng');
+ return autoWorker;
 }
-async function readPhotos(){
- try{
-  const db=await photoDb();const tx=db.transaction(SCAN_STORE,'readonly');
-  const req=tx.objectStore(SCAN_STORE).openCursor();
-  req.onsuccess=()=>{
-   const cursor=req.result;
-   if(!cursor){render();return;}
-   if(cursor.value instanceof Blob){if(scannedUrls[cursor.key])URL.revokeObjectURL(scannedUrls[cursor.key]);scannedUrls[cursor.key]=URL.createObjectURL(cursor.value)}
-   cursor.continue();
-  };
- }catch(e){console.warn('Kartenfotos nicht verfügbar',e)}
-}
-const scanCanvas=$('scanCanvas'),scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
-let scanningId='',scanImg=null,scanPoints=[],scanRect={x:0,y:0,w:420,h:560},scanDrag=-1;
-function scanCornersDefault(){
- // leicht eingerückter Rahmen als Startpunkt, damit Ecken auch am Bildrand verschiebbar sind
- scanPoints=[[.08,.08],[.92,.08],[.92,.92],[.08,.92]];
-}
-function scanDraw(){
- const W=scanCanvas.width,H=scanCanvas.height;
- scanCtx.clearRect(0,0,W,H);scanCtx.fillStyle='#09111f';scanCtx.fillRect(0,0,W,H);
- if(!scanImg){scanCtx.fillStyle='#c8d1e1';scanCtx.textAlign='center';scanCtx.font='16px sans-serif';scanCtx.fillText('Kamera / Foto wählen',W/2,H/2);return;}
- const scale=Math.min(W/scanImg.width,H/scanImg.height);
- scanRect={x:(W-scanImg.width*scale)/2,y:(H-scanImg.height*scale)/2,w:scanImg.width*scale,h:scanImg.height*scale};
- scanCtx.drawImage(scanImg,scanRect.x,scanRect.y,scanRect.w,scanRect.h);
- const pts=scanPoints.map(([x,y])=>[scanRect.x+x*scanRect.w,scanRect.y+y*scanRect.h]);
- scanCtx.fillStyle='rgba(0,0,0,.33)';scanCtx.beginPath();scanCtx.rect(0,0,W,H);
- scanCtx.moveTo(...pts[0]);pts.slice(1).forEach(p=>scanCtx.lineTo(...p));scanCtx.closePath();
- scanCtx.fill('evenodd');
- scanCtx.lineWidth=3;scanCtx.strokeStyle='#d5fb69';scanCtx.beginPath();pts.forEach((p,i)=>i?scanCtx.lineTo(...p):scanCtx.moveTo(...p));scanCtx.closePath();scanCtx.stroke();
- pts.forEach((p,i)=>{scanCtx.beginPath();scanCtx.arc(p[0],p[1],10,0,Math.PI*2);scanCtx.fillStyle='#d5fb69';scanCtx.fill();scanCtx.strokeStyle='#13221b';scanCtx.lineWidth=2;scanCtx.stroke()});
-}
-function scanPointerPosition(e){const r=scanCanvas.getBoundingClientRect();return [(e.clientX-r.left)*scanCanvas.width/r.width,(e.clientY-r.top)*scanCanvas.height/r.height]}
-scanCanvas.addEventListener('pointerdown',e=>{
- if(!scanImg)return;
- const [x,y]=scanPointerPosition(e);
- let best=-1,dist=30;
- scanPoints.forEach(([u,v],i)=>{const d=Math.hypot(x-scanRect.x-u*scanRect.w,y-scanRect.y-v*scanRect.h);if(d<dist){best=i;dist=d}});
- if(best>=0){scanDrag=best;scanCanvas.setPointerCapture(e.pointerId);e.preventDefault()}
-});
-scanCanvas.addEventListener('pointermove',e=>{
- if(scanDrag<0||!scanImg)return;
- const [x,y]=scanPointerPosition(e);const clamp=x=>Math.min(1,Math.max(0,x));
- scanPoints[scanDrag]=[clamp((x-scanRect.x)/scanRect.w),clamp((y-scanRect.y)/scanRect.h)];
- scanDraw();e.preventDefault();
-});
-for(const name of ['pointerup','pointercancel','lostpointercapture'])scanCanvas.addEventListener(name,()=>scanDrag=-1);
-function openScanner(id){
- scanningId=id;scanImg=null;scanCornersDefault();scanDraw();
- $('scanTitle').textContent='Karte #'+id+' fotografieren';
- $('scanSave').disabled=true;$('scanDelete').hidden=!scannedUrls[id];
- $('scanStatus').textContent='Bitte zunächst ein Foto aufnehmen oder auswählen.';
- $('scanDialog').showModal();
-}
-$('scanChoose').onclick=()=>$('scanInput').click();
-$('scanClose').onclick=()=>$('scanDialog').close();
-$('scanResetCorners').onclick=()=>{scanCornersDefault();scanDraw()};
-$('scanInput').onchange=async e=>{
- const f=e.target.files?.[0];if(!f)return;
- $('scanStatus').textContent='Foto wird geladen …';
- const url=URL.createObjectURL(f);
- try{
-  const img=new Image();img.src=url;await img.decode();
-  // Das Eingabebild vor der Bearbeitung auf 1500 Pixel verkleinern, spart iPhone-Speicher.
-  const max=1500,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
-  const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);
-  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-  const reduced=new Image();reduced.src=c.toDataURL('image/jpeg',.90);await reduced.decode();
-  scanImg=reduced;scanCornersDefault();scanDraw();$('scanSave').disabled=false;
-  $('scanStatus').textContent='Ecken anpassen und „Zuschnitt speichern“ wählen.';
- }catch(err){$('scanStatus').textContent='Foto konnte nicht gelesen werden.'}finally{URL.revokeObjectURL(url);e.target.value=''}
+$('startAutoScan').onclick=()=>{
+ $('autoScanResult').textContent='Kartennummer fotografieren, dann Erkennung starten.';
+ $('autoScanPreview').hidden=true;autoSetOptions();
+ $('autoScanDialog').showModal();
 };
-// Berechnet für die Perspektivkorrektur eine 3x3-Projektionsmatrix (8 Freiheitsgrade).
-function solveLinear(A,b){
- const n=b.length;A=A.map((r,i)=>[...r,b[i]]);
- for(let col=0;col<n;col++){
-  let m=col;for(let row=col+1;row<n;row++)if(Math.abs(A[row][col])>Math.abs(A[m][col]))m=row;
-  if(Math.abs(A[m][col])<1e-10)throw new Error('Bitte die vier Eckpunkte korrekt verteilen.');
-  [A[m],A[col]]=[A[col],A[m]];
-  const q=A[col][col];for(let j=col;j<=n;j++)A[col][j]/=q;
-  for(let row=0;row<n;row++){if(row===col)continue;const f=A[row][col];for(let j=col;j<=n;j++)A[row][j]-=f*A[col][j]}
- }
- return A.map(r=>r[n]);
-}
-function perspectivePhoto(){
- if(!scanImg)throw new Error('Bitte zuerst ein Foto wählen.');
- const W=420,H=588;
- // Drehrichtung / Reihenfolge: TL, TR, BR, BL.
- const targets=[[0,0],[W-1,0],[W-1,H-1],[0,H-1]];
- const sources=scanPoints.map(([x,y])=>[x*(scanImg.width-1),y*(scanImg.height-1)]);
- const A=[],b=[];
- for(let i=0;i<4;i++){
-  const [x,y]=targets[i],[u,v]=sources[i];
-  A.push([x,y,1,0,0,0,-x*u,-y*u]);b.push(u);
-  A.push([0,0,0,x,y,1,-x*v,-y*v]);b.push(v);
- }
- const h=solveLinear(A,b);
- const source=document.createElement('canvas');source.width=scanImg.width;source.height=scanImg.height;
- const sc=source.getContext('2d',{willReadFrequently:true});sc.drawImage(scanImg,0,0);
- const input=sc.getImageData(0,0,source.width,source.height),pixels=input.data;
- const output=document.createElement('canvas');output.width=W;output.height=H;
- const ctx=output.getContext('2d');const out=ctx.createImageData(W,H),dst=out.data;
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-  const den=h[6]*x+h[7]*y+1;
-  const sx=Math.round((h[0]*x+h[1]*y+h[2])/den),sy=Math.round((h[3]*x+h[4]*y+h[5])/den);
-  const j=(y*W+x)*4;if(sx>=0&&sy>=0&&sx<source.width&&sy<source.height){const k=(sy*source.width+sx)*4;dst[j]=pixels[k];dst[j+1]=pixels[k+1];dst[j+2]=pixels[k+2];dst[j+3]=255}
-  else {dst[j]=16;dst[j+1]=20;dst[j+2]=30;dst[j+3]=255}
- }
- ctx.putImageData(out,0,0);
- return output;
-}
-$('scanSave').onclick=async()=>{
- if(!scanImg||!scanningId)return;
- $('scanSave').disabled=true;$('scanStatus').textContent='Karte wird zugeschnitten und gespeichert …';
- try{
-  const canvas=perspectivePhoto();
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.83));
-  if(!blob)throw new Error('Foto konnte nicht gespeichert werden.');
-  await storePhoto(scanningId,blob);
-  if(scannedUrls[scanningId])URL.revokeObjectURL(scannedUrls[scanningId]);
-  scannedUrls[scanningId]=URL.createObjectURL(blob);
-  if(!counts[scanningId]){counts[scanningId]=1;try{localStorage.setItem(STORAGE,JSON.stringify(counts))}catch(e){}}
-  $('scanDialog').close();render();
- }catch(e){$('scanStatus').textContent=e.message||'Speichern fehlgeschlagen.';console.error(e)}
- finally{$('scanSave').disabled=false}
+$('autoScanChoose').onclick=()=>$('autoScanInput').click();
+$('autoScanClose').onclick=()=>{ $('autoScanDialog').close();if(autoObjectUrl){URL.revokeObjectURL(autoObjectUrl);autoObjectUrl=null;}$('autoScanPreview').removeAttribute('src');};
+$('autoScanSelect').onchange=()=>{$('autoScanConfirm').disabled=!$('autoScanSelect').value;};
+$('autoScanConfirm').onclick=()=>{
+ const id=$('autoScanSelect').value;if(!cards.some(c=>c.id===id))return;
+ // Doppelte Exemplare zählen beim erneuten Scan hoch.
+ step(id,1);$('autoScanResult').textContent='✓ '+autoLabel(cards.find(c=>c.id===id))+' hinzugefügt.';
+ $('autoScanSelect').value='';$('autoScanConfirm').disabled=true;
 };
-$('scanDelete').onclick=async()=>{
- if(!confirm('Foto dieser Karte entfernen? Der Sammelstatus bleibt erhalten.'))return;
- try{await removePhoto(scanningId);if(scannedUrls[scanningId]){URL.revokeObjectURL(scannedUrls[scanningId]);delete scannedUrls[scanningId]}$('scanDialog').close();render()}
- catch(e){$('scanStatus').textContent='Foto konnte nicht gelöscht werden.'}
+$('autoScanInput').onchange=async e=>{
+ const f=e.target.files?.[0];e.target.value='';if(!f)return;
+ $('autoScanResult').textContent='Foto wird vorbereitet …';
+ $('autoScanConfirm').disabled=true;
+ if(autoObjectUrl)URL.revokeObjectURL(autoObjectUrl);
+ autoObjectUrl=URL.createObjectURL(f);
+ $('autoScanPreview').src=autoObjectUrl;$('autoScanPreview').hidden=false;
+ try{
+  const image=new Image();image.src=autoObjectUrl;await image.decode();
+  // Fotos verkleinern, damit die Texterkennung auf dem iPhone nicht zu viel Arbeitsspeicher benötigt.
+  const factor=Math.min(1,1800/Math.max(image.naturalWidth,image.naturalHeight));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*factor));canvas.height=Math.max(1,Math.round(image.naturalHeight*factor));
+  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+  $('autoScanResult').textContent='Kartennummer wird gelesen … (beim ersten Mal kann der Download länger dauern)';
+  const worker=await autoLoadOCR();
+  const result=await worker.recognize(canvas);
+  const raw=result.data.text||'';
+  const ranked=autoRankMatches(raw);
+  const best=ranked[0], clear=best && (ranked.length===1 || best[1]>=ranked[1][1]+4);
+  autoSetOptions(clear?[best[0]]:ranked.map(x=>x[0]));
+  const card=best?cards.find(c=>c.id===best[0]):null;
+  // Konservativer automatischer Treffer: Nummer UND längerer Spieler-Nachname
+  // im OCR-Text, hohe OCR-Sicherheit und eindeutige Zuordnung.
+  const normalized=raw.toLocaleUpperCase('de');
+  const surname=card ? (cardName(card).trim().split(/\\s+/).at(-1)||'').toLocaleUpperCase('de') : '';
+  const certain=Boolean(clear && card && best[1]>=8 && surname.length>=5 && normalized.includes(surname) && result.data.confidence>=75);
+  if(certain && $('autoScanInstant').checked && !counts[card.id]){
+    step(card.id,1);
+    $('autoScanResult').textContent='✓ Automatisch abgehakt: '+autoLabel(card)+'. Weiteres Foto aufnehmen oder schließen.';
+    $('autoScanConfirm').disabled=true;
+  } else if(best && clear){
+    $('autoScanResult').textContent='Vorschlag: '+autoLabel(card)+'. Bitte prüfen und mit „Karte hinzufügen“ bestätigen.';
+  } else {
+    $('autoScanResult').textContent='Keine eindeutige Nummer erkannt. Bitte Karte unten auswählen. Tipp: Kartennummer groß und scharf fotografieren.';
+  }
+ }catch(err){$('autoScanResult').textContent='Erkennung fehlgeschlagen: '+(err.message||'Unbekannter Fehler')+'. Du kannst die Nummer unten trotzdem auswählen.';autoSetOptions();}
 };
 
 buildFilters();
 fillMissingFilters();
 render();
-readPhotos();
 loadClubCrests();
 </script>
 </body>
