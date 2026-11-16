@@ -282,6 +282,15 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 #autoScanDialog .auto-actions button:disabled{opacity:.45}
 #autoScanResult{color:#d5fb69!important;min-height:20px}
 
+
+/* V13: Position der Karte mit verschiebbaren Ecken, Nummer in Originalauflösung lesen */
+#autoScanCanvas{width:100%;height:auto;display:block;max-height:46vh;object-fit:contain;touch-action:none;border-radius:12px;background:#060c16;margin:12px auto;cursor:crosshair}
+#autoScanCanvas[hidden],#autoScanCropPreview[hidden],#autoScanCropTools[hidden]{display:none!important}
+#autoScanCropPreview{display:block;width:100%;height:auto;max-height:120px;object-fit:contain;border-radius:10px;border:1px solid #a7ec87aa;background:#fff;margin:9px 0}
+#autoScanCropTools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px}
+.crop-help{font-size:11px;color:#b2c3d9;line-height:1.3}
+#autoScanRetry{flex-shrink:0;border:0;background:#d5fb69;color:#122017;font-weight:750;border-radius:10px;padding:10px;font-size:12px}
+
 /* V12: Direktes Abhaken durch Berührung der Karte */
 .card[data-card-id]{cursor:pointer;touch-action:manipulation;transition:transform .15s ease,border-color .15s ease}
 .card[data-card-id]:active{transform:scale(.985)}
@@ -342,14 +351,16 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 
 <dialog id="autoScanDialog" aria-labelledby="autoScanTitle">
   <h2 id="autoScanTitle">Karte automatisch erkennen</h2>
-  <p>Fotografiere die Kartennummer gut lesbar, möglichst ohne Spiegelungen. Das Foto wird nur für die Texterkennung verwendet und nicht gespeichert. Bei unsicheren Treffern bestätigst du die richtige Karte.</p>
+  <p>Fotografiere die ganze Karte mit etwas Abstand. Die App sucht die Kartengrenzen und liest die obere rechte Ecke vergrößert. Falls die Markierung nicht stimmt, verschiebe die vier Eckpunkte.</p>
   <input type="file" id="autoScanInput" accept="image/*" capture="environment" hidden>
-  <img id="autoScanPreview" alt="Nur für die Erkennung verwendetes Foto" hidden>
+  <canvas id="autoScanCanvas" aria-label="Kartenfoto mit vier verschiebbaren Eckpunkten" hidden></canvas>
+  <div id="autoScanCropTools" hidden><span class="crop-help">Die grüne Umrandung auf die vier Kartenecken ziehen.</span><button type="button" id="autoScanRetry" class="crop-retry">Ecke erneut lesen</button></div>
+  <canvas id="autoScanCropPreview" aria-label="Vergrößerter Ausschnitt oben rechts" hidden></canvas>
   <p id="autoScanResult" role="status">Noch kein Foto aufgenommen.</p>
   <label class="auto-check-option"><input id="autoScanInstant" type="checkbox" checked> Bei eindeutig erkanntem Spieler und Kartennummer automatisch abhaken</label><label for="autoScanSelect">Erkannte Karte oder Nummer manuell auswählen</label>
   <select id="autoScanSelect"><option value="">Bitte erst eine Karte fotografieren</option></select>
   <div class="auto-actions">
-   <button type="button" id="autoScanChoose" class="primary">Kartennummer scannen</button>
+   <button type="button" id="autoScanChoose" class="primary">Karte fotografieren</button>
    <button type="button" id="autoScanConfirm" class="primary" disabled>Karte hinzufügen</button>
    <button type="button" id="autoScanClose">Schließen</button>
   </div>
@@ -605,14 +616,15 @@ $('grid').addEventListener('click',e=>{
     if(act==='plus') step(id,1);
     else if(act==='minus') step(id,-1);
     else toggle(id);
+    clearSearchAfterChoice();
     return;
   }
   const card=e.target.closest('article[data-card-id]');
-  if(card && $('grid').contains(card)) toggle(card.dataset.cardId);
+  if(card && $('grid').contains(card)){toggle(card.dataset.cardId);clearSearchAfterChoice();}
 });
 $('grid').addEventListener('keydown',e=>{
   if(e.target.matches('article[data-card-id]') && (e.key==='Enter'||e.key===' ')){
-    e.preventDefault();toggle(e.target.dataset.cardId);
+    e.preventDefault();toggle(e.target.dataset.cardId);clearSearchAfterChoice();
   }
 });
 function openNameEditor(id){
@@ -642,7 +654,15 @@ $('editRemove').onclick=()=>{
   if(!saveNames())return;
   $('editDialog').close();render();
 };
+// Suche erst nach der Auswahl zurücksetzen, damit Ergebnisse beim Tippen sichtbar bleiben.
+function clearSearchAfterChoice(){
+ if(!$('query').value) return;
+ $('query').value='';
+ $('query').blur();
+ render();
+}
 $('query').addEventListener('input',render);
+$('query').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
 $('team').addEventListener('change',render);
 $('type').addEventListener('change',render);
 $('sortBy').addEventListener('change',render);
@@ -786,7 +806,7 @@ function autoRankMatches(raw){
    if(new RegExp('(^|[^A-Z0-9])'+id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'($|[^A-Z0-9])').test(cleaned.replace(/\s+/g,' ')))score+=10;
    if(words.some(w=>w.replace(/[\s-]/g,'')===id))score+=8;
   }else{
-   if(words.some(w=>w.trim()===id))score+=5;
+   if(words.some(w=>w.trim()===id))score+=12;
   }
   const player=cardName(c).toLocaleUpperCase('de').trim();
   if(player.length>4 && cleaned.includes(player))score+=9;
@@ -807,56 +827,160 @@ async function autoLoadOCR(){
  if(!autoWorker)autoWorker=await window.Tesseract.createWorker('eng');
  return autoWorker;
 }
+// V13: Kartenkontur grob erkennen, bei Bedarf vier Ecken von Hand korrigieren.
+let scanImage=null, scanCorners=null, scanDrag=-1, scanBusy=false;
+const scanView=$('autoScanCanvas'),scanContext=scanView.getContext('2d');
+const numberView=$('autoScanCropPreview');
+function scanPoint(p){return {x:p.x*scanView.width,y:p.y*scanView.height};}
+function scanDraw(){
+ if(!scanImage||!scanCorners)return;
+ scanContext.clearRect(0,0,scanView.width,scanView.height);
+ scanContext.drawImage(scanImage,0,0,scanView.width,scanView.height);
+ const corners=scanCorners.map(scanPoint);
+ scanContext.lineWidth=Math.max(2,scanView.width/220);
+ scanContext.strokeStyle='#d5fb69';
+ scanContext.beginPath();corners.forEach((p,i)=>i?scanContext.lineTo(p.x,p.y):scanContext.moveTo(p.x,p.y));scanContext.closePath();scanContext.stroke();
+ for(let i=0;i<4;i++){
+   const p=corners[i];scanContext.beginPath();scanContext.arc(p.x,p.y,Math.max(8,scanView.width/42),0,Math.PI*2);
+   scanContext.fillStyle='#d5fb69';scanContext.fill();scanContext.strokeStyle='#122019';scanContext.lineWidth=2;scanContext.stroke();
+ }
+ // Gelb markiert den oberen rechten Ausschnitt, den die OCR tatsächlich ausliest.
+ const t=scanPoint(scanBlend(scanCorners[0],scanCorners[1],.64)),r=scanCorners[1];
+ const rightDown=scanPoint(scanBlend(scanCorners[1],scanCorners[2],.29));
+ const leftDown=scanPoint(scanBlend(scanBlend(scanCorners[0],scanCorners[1],.64),scanBlend(scanCorners[3],scanCorners[2],.64),.29));
+ scanContext.strokeStyle='#ffdb6f';scanContext.lineWidth=2;scanContext.beginPath();scanContext.moveTo(t.x,t.y);scanContext.lineTo(r.x,r.y);scanContext.lineTo(rightDown.x,rightDown.y);scanContext.lineTo(leftDown.x,leftDown.y);scanContext.closePath();scanContext.stroke();
+}
+function scanBlend(a,b,t){return{x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};}
+function scanDetect(image){
+ // Farbe/Helligkeitswechsel am Rand der Karte: grobe heuristische Suche.
+ // Keine Erkennungssicherheit vortäuschen: Eckpunkte sind jederzeit korrigierbar.
+ const c=document.createElement('canvas'), max=320;
+ const factor=Math.min(1,max/Math.max(image.naturalWidth,image.naturalHeight));
+ c.width=Math.round(image.naturalWidth*factor);c.height=Math.round(image.naturalHeight*factor);
+ const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);
+ const data=ctx.getImageData(0,0,c.width,c.height).data;
+ const pixel=(x,y)=>{const i=(Math.floor(y)*c.width+Math.floor(x))*4;return[data[i],data[i+1],data[i+2]]};
+ const corners=[[0,0],[c.width-1,0],[c.width-1,c.height-1],[0,c.height-1]];
+ const bg=corners.map(([x,y])=>pixel(x,y));
+ const dist=(p,q)=>Math.abs(p[0]-q[0])+Math.abs(p[1]-q[1])+Math.abs(p[2]-q[2]);
+ let minX=c.width,maxX=0,minY=c.height,maxY=0,hits=0;
+ for(let y=8;y<c.height-8;y+=3){for(let x=8;x<c.width-8;x+=3){
+   const p=pixel(x,y),distance=Math.min(...bg.map(b=>dist(p,b)));
+   if(distance>95){minX=Math.min(x,minX);maxX=Math.max(x,maxX);minY=Math.min(y,minY);maxY=Math.max(y,maxY);hits++;}
+ }}
+ const width=maxX-minX,height=maxY-minY;
+ const valid=hits>100&&width>c.width*.27&&height>c.height*.27&&width<c.width*.92&&height<c.height*.95;
+ const box=valid?{l:Math.max(.02,minX/c.width),r:Math.min(.98,maxX/c.width),t:Math.max(.02,minY/c.height),b:Math.min(.98,maxY/c.height)}:{l:.07,r:.93,t:.05,b:.95};
+ return [{x:box.l,y:box.t},{x:box.r,y:box.t},{x:box.r,y:box.b},{x:box.l,y:box.b}];
+}
+function scanCoords(e){const r=scanView.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
+scanView.addEventListener('pointerdown',e=>{
+ if(!scanCorners)return;
+ const p=scanCoords(e);
+ const distances=scanCorners.map(c=>Math.hypot((c.x-p.x)*scanView.width,(c.y-p.y)*scanView.height));
+ const closest=distances.indexOf(Math.min(...distances));
+ if(distances[closest]>Math.max(42,scanView.width*.10))return;
+ scanDrag=closest;scanView.setPointerCapture(e.pointerId);e.preventDefault();
+});
+scanView.addEventListener('pointermove',e=>{
+ if(scanDrag<0)return;
+ scanCorners[scanDrag]=scanCoords(e);scanDraw();e.preventDefault();
+});
+scanView.addEventListener('pointerup',e=>{
+ if(scanDrag<0)return;scanDrag=-1;scanReadCorner();
+});
+scanView.addEventListener('pointercancel',()=>scanDrag=-1);
+// Bilineare Abbildung aus den vier Eckpunkten auf die Kartenvorderseite.
+// Die Erkennung nutzt ausschließlich die rechte obere Ecke und nicht das Vollfoto.
+function scanCornerCanvas(){
+ const w=1000,h=430;
+ const temp=document.createElement('canvas'),ctx=temp.getContext('2d',{willReadFrequently:true});
+ temp.width=w;temp.height=h;
+ const original=document.createElement('canvas');original.width=scanImage.naturalWidth;original.height=scanImage.naturalHeight;
+ const octx=original.getContext('2d',{willReadFrequently:true});octx.drawImage(scanImage,0,0);
+ const source=octx.getImageData(0,0,original.width,original.height),out=ctx.createImageData(w,h);
+ const [tl,tr,br,bl]=scanCorners;
+ for(let y=0;y<h;y++){
+  const v=(y/h)*.34;
+  for(let x=0;x<w;x++){
+   const u=.59+(x/w)*.41;
+   const top=scanBlend(tl,tr,u),bottom=scanBlend(bl,br,u),p=scanBlend(top,bottom,v);
+   const sx=Math.max(0,Math.min(source.width-1,Math.round(p.x*(source.width-1))));
+   const sy=Math.max(0,Math.min(source.height-1,Math.round(p.y*(source.height-1))));
+   const si=(sy*source.width+sx)*4,di=(y*w+x)*4;
+   out.data[di]=source.data[si];out.data[di+1]=source.data[si+1];out.data[di+2]=source.data[si+2];out.data[di+3]=255;
+  }
+ }
+ ctx.putImageData(out,0,0);
+ return temp;
+}
+function scanEnhance(canvas){
+ const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;
+ const ctx=out.getContext('2d',{willReadFrequently:true});ctx.drawImage(canvas,0,0);
+ const d=ctx.getImageData(0,0,out.width,out.height);
+ for(let i=0;i<d.data.length;i+=4){
+  const grey=.299*d.data[i]+.587*d.data[i+1]+.114*d.data[i+2];
+  const value=grey>135?255:0;d.data[i]=d.data[i+1]=d.data[i+2]=value;
+ }
+ ctx.putImageData(d,0,0);return out;
+}
+async function scanReadCorner(){
+ if(!scanImage||scanBusy)return;
+ scanBusy=true;$('autoScanResult').textContent='Obere rechte Kartenecke wird vergrößert und gelesen …';
+ try{
+  const crop=scanCornerCanvas();
+  numberView.width=crop.width;numberView.height=crop.height;numberView.getContext('2d').drawImage(crop,0,0);
+  numberView.hidden=false;
+  const worker=await autoLoadOCR();
+  const clean=scanEnhance(crop);
+  const results=[await worker.recognize(clean)];
+  if(!autoRankMatches(results[0].data.text||'').length){results.push(await worker.recognize(crop));}
+  const candidates=results.flatMap(r=>autoRankMatches(r.data.text||'').map(([id,score])=>({id,score,confidence:r.data.confidence})));
+  candidates.sort((a,b)=>b.score-a.score);
+  const best=candidates[0],second=candidates.find(x=>x.id!==best?.id),card=best?cards.find(c=>c.id===best.id):null;
+  const clear=best&&best.score>=7&&(!second||best.score>=second.score+4);
+  autoSetOptions(best?[best.id,...candidates.filter(x=>x.id!==best.id).map(x=>x.id)]:[]);
+  if(clear && best && best.score>=10 && best.confidence>=90 && !counts[best.id] && $('autoScanInstant').checked){
+    // Kein Autoabhaken ohne eindeutig erkannten Kartencode; einfache Ziffern sind unsicher.
+    const idText=best.id.toUpperCase();
+    const ocrText=results.map(r=>r.data.text.toUpperCase()).join(' ');
+    if(/[A-Z]/.test(idText)&&ocrText.includes(idText)){
+      step(best.id,1);$('autoScanResult').textContent='✓ Automatisch abgehakt: '+autoLabel(card);$('autoScanConfirm').disabled=true;
+    }else $('autoScanResult').textContent='Möglicher Treffer: '+autoLabel(card)+'. Bitte bestätigen.';
+  }else if(card){$('autoScanResult').textContent='Möglicher Treffer: '+autoLabel(card)+'. Bitte prüfen und bestätigen.';}
+  else {$('autoScanResult').textContent='Noch keine eindeutige Nummer. Prüfe die grüne Kontur, oder wähle die Karte manuell aus.';}
+ }catch(err){$('autoScanResult').textContent='Texterkennung fehlgeschlagen: '+(err.message||'Unbekannter Fehler');}
+ finally{scanBusy=false;}
+}
 $('startAutoScan').onclick=()=>{
- $('autoScanResult').textContent='Kartennummer fotografieren, dann Erkennung starten.';
- $('autoScanPreview').hidden=true;autoSetOptions();
- $('autoScanDialog').showModal();
+ $('autoScanResult').textContent='Karte fotografieren, dann grüne Kontur prüfen.';
+ scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
+ autoSetOptions();$('autoScanDialog').showModal();
 };
 $('autoScanChoose').onclick=()=>$('autoScanInput').click();
-$('autoScanClose').onclick=()=>{ $('autoScanDialog').close();if(autoObjectUrl){URL.revokeObjectURL(autoObjectUrl);autoObjectUrl=null;}$('autoScanPreview').removeAttribute('src');};
+$('autoScanRetry').onclick=scanReadCorner;
+$('autoScanClose').onclick=()=>{
+ $('autoScanDialog').close();scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
+ if(autoObjectUrl){URL.revokeObjectURL(autoObjectUrl);autoObjectUrl=null;}
+};
 $('autoScanSelect').onchange=()=>{$('autoScanConfirm').disabled=!$('autoScanSelect').value;};
 $('autoScanConfirm').onclick=()=>{
  const id=$('autoScanSelect').value;if(!cards.some(c=>c.id===id))return;
- // Doppelte Exemplare zählen beim erneuten Scan hoch.
  step(id,1);$('autoScanResult').textContent='✓ '+autoLabel(cards.find(c=>c.id===id))+' hinzugefügt.';
  $('autoScanSelect').value='';$('autoScanConfirm').disabled=true;
 };
 $('autoScanInput').onchange=async e=>{
- const f=e.target.files?.[0];e.target.value='';if(!f)return;
- $('autoScanResult').textContent='Foto wird vorbereitet …';
+ const file=e.target.files?.[0];e.target.value='';if(!file)return;
+ $('autoScanResult').textContent='Suche Kartenränder …';
  $('autoScanConfirm').disabled=true;
- if(autoObjectUrl)URL.revokeObjectURL(autoObjectUrl);
- autoObjectUrl=URL.createObjectURL(f);
- $('autoScanPreview').src=autoObjectUrl;$('autoScanPreview').hidden=false;
  try{
-  const image=new Image();image.src=autoObjectUrl;await image.decode();
-  // Fotos verkleinern, damit die Texterkennung auf dem iPhone nicht zu viel Arbeitsspeicher benötigt.
-  const factor=Math.min(1,1800/Math.max(image.naturalWidth,image.naturalHeight));
-  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*factor));canvas.height=Math.max(1,Math.round(image.naturalHeight*factor));
-  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
-  $('autoScanResult').textContent='Kartennummer wird gelesen … (beim ersten Mal kann der Download länger dauern)';
-  const worker=await autoLoadOCR();
-  const result=await worker.recognize(canvas);
-  const raw=result.data.text||'';
-  const ranked=autoRankMatches(raw);
-  const best=ranked[0], clear=best && (ranked.length===1 || best[1]>=ranked[1][1]+4);
-  autoSetOptions(clear?[best[0]]:ranked.map(x=>x[0]));
-  const card=best?cards.find(c=>c.id===best[0]):null;
-  // Konservativer automatischer Treffer: Nummer UND längerer Spieler-Nachname
-  // im OCR-Text, hohe OCR-Sicherheit und eindeutige Zuordnung.
-  const normalized=raw.toLocaleUpperCase('de');
-  const surname=card ? (cardName(card).trim().split(/\\s+/).at(-1)||'').toLocaleUpperCase('de') : '';
-  const certain=Boolean(clear && card && best[1]>=8 && surname.length>=5 && normalized.includes(surname) && result.data.confidence>=75);
-  if(certain && $('autoScanInstant').checked && !counts[card.id]){
-    step(card.id,1);
-    $('autoScanResult').textContent='✓ Automatisch abgehakt: '+autoLabel(card)+'. Weiteres Foto aufnehmen oder schließen.';
-    $('autoScanConfirm').disabled=true;
-  } else if(best && clear){
-    $('autoScanResult').textContent='Vorschlag: '+autoLabel(card)+'. Bitte prüfen und mit „Karte hinzufügen“ bestätigen.';
-  } else {
-    $('autoScanResult').textContent='Keine eindeutige Nummer erkannt. Bitte Karte unten auswählen. Tipp: Kartennummer groß und scharf fotografieren.';
-  }
- }catch(err){$('autoScanResult').textContent='Erkennung fehlgeschlagen: '+(err.message||'Unbekannter Fehler')+'. Du kannst die Nummer unten trotzdem auswählen.';autoSetOptions();}
+  if(autoObjectUrl)URL.revokeObjectURL(autoObjectUrl);
+  autoObjectUrl=URL.createObjectURL(file);scanImage=new Image();scanImage.src=autoObjectUrl;await scanImage.decode();
+  const max=700,scale=Math.min(1,max/Math.max(scanImage.naturalWidth,scanImage.naturalHeight));
+  scanView.width=Math.round(scanImage.naturalWidth*scale);scanView.height=Math.round(scanImage.naturalHeight*scale);
+  scanCorners=scanDetect(scanImage);scanView.hidden=false;$('autoScanCropTools').hidden=false;
+  scanDraw();await scanReadCorner();
+ }catch(err){$('autoScanResult').textContent='Foto konnte nicht geladen werden: '+(err.message||'Unbekannter Fehler');}
 };
 
 buildFilters();
