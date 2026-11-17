@@ -308,6 +308,23 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 .card[data-card-id]:focus-visible{outline:3px solid #d5fb69;outline-offset:3px}
 .card[data-card-id].owned{box-shadow:0 10px 26px #080a1b77,0 0 0 2px #d5fb6999}
 .card button{touch-action:manipulation}
+
+/* V16: echte Konturprüfung und bildbasierte Kartenvorschau */
+#autoScanDialog{max-width:540px}
+.scan-quality{font-size:12px;color:#dce8f5;background:#273149;border:1px solid #ffffff30;border-radius:12px;padding:10px 12px;margin-top:8px;line-height:1.4}
+.scan-photo-option{display:flex;gap:10px;align-items:flex-start;color:#e7f2ed;font-size:13px;line-height:1.45;background:#1a3040;border-radius:12px;padding:12px;margin-top:10px;border:1px solid #d5fb6940}
+.scan-photo-option input{width:19px;height:19px;flex:none;accent-color:#d5fb69}
+.scan-photo-note{font-size:11px!important;margin:7px 0;color:#9dacc1!important}
+#autoScanPhotoPreview{width:125px!important;max-height:180px!important;height:170px!important;object-fit:contain!important;background:#0c1622!important;border:1px solid #d5fb6970;margin:8px auto!important}
+#autoScanPhotoPreview[hidden]{display:none!important}
+.card.has-card-photo .art{height:205px;background:#111a25!important}
+.card.has-card-photo .art:before,.card.has-card-photo .art:after{display:none}
+.card.has-card-photo .art .design-geometry,.card.has-card-photo .art .silhouette,.card.has-card-photo .art .initials,.card.has-card-photo .art .teammark,.card.has-card-photo .art .club-crest,.card.has-card-photo .art .design-mark{display:none!important}
+.card.has-card-photo .art{padding:4px}
+.card .scanned-card-image{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:contain;z-index:5;border-radius:5px;background:#10161f}
+.card.has-card-photo .card-body{position:relative;bottom:auto}
+.card.has-card-photo{min-height:0}
+.scan-corner-notice{font-size:11px;color:#fdde80;display:block;margin-top:5px}
 </style>
 </head>
 <body>
@@ -365,9 +382,9 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
   <p>Fotografiere die ganze Karte mit etwas Abstand. Die App sucht die Kartengrenzen und liest die obere rechte Ecke vergrößert. Falls die Markierung nicht stimmt, verschiebe die vier Eckpunkte.</p>
   <input type="file" id="autoScanInput" accept="image/*" capture="environment" hidden>
   <canvas id="autoScanCanvas" aria-label="Kartenfoto mit vier verschiebbaren Eckpunkten" hidden></canvas>
-  <div id="autoScanCropTools" hidden><span class="crop-help">Die grüne Kontur prüfen. Gelb zeigt die Nummernzone unter dem Topps-Logo. Bei Bedarf Ecken verschieben.</span><button type="button" id="autoScanRetry" class="crop-retry">Nummer erneut lesen</button></div>
+  <div id="autoScanCropTools" hidden><span class="crop-help">Grüne Linien = erkannte Außenkanten. Prüfe alle vier Ecken und verschiebe sie bei Bedarf. Gelb zeigt den Nummernbereich.</span><button type="button" id="autoScanRetry" class="crop-retry">Nummer erneut lesen</button></div>
   <canvas id="autoScanCropPreview" aria-label="Vergrößerter Ausschnitt oben rechts" hidden></canvas>
-  <p id="autoScanResult" role="status">Noch kein Foto aufgenommen.</p>
+  <p id="autoScanResult" role="status">Noch kein Foto aufgenommen.</p><div id="scanQuality" class="scan-quality" hidden></div><img id="autoScanPhotoPreview" alt="Freigestellte Karte als Vorschau" hidden><label class="scan-photo-option"><input type="checkbox" id="scanSavePhoto" checked><span>Freigestellte Karte nach Bestätigung als Vorschau speichern</span></label><p class="scan-photo-note">Nur die zugeschnittene Karte wird lokal auf diesem Gerät gespeichert. Sie wird nicht auf andere Geräte synchronisiert und ist nicht in der JSON-Sicherung enthalten.</p>
   <label class="auto-check-option"><input id="autoScanInstant" type="checkbox"> Bei eindeutig erkanntem Spieler und Kartennummer automatisch abhaken</label><label for="autoScanSelect">Erkannte Karte oder Nummer manuell auswählen</label>
   <select id="autoScanSelect" aria-label="Kartennummer zuordnen"><option value="">Bitte erst eine Karte fotografieren</option></select>
   <label class="scan-name-label" for="autoScanName">Spielername ergänzen oder korrigieren <small>(optional)</small></label>
@@ -588,14 +605,15 @@ function render(){
     const n=counts[card.id]||0;
     const assignedName=cardName(card);
     const player=assignedName && assignedName.trim() ? assignedName : 'Karte '+card.id;
-    return `<article class="card design-${designKind(card.k)} ${n?'owned':''}" data-card-id="${escapeHTML(card.id)}" role="button" tabindex="0" aria-label="Karte ${escapeHTML(card.id)}, ${escapeHTML(player)}, ${n?'vorhanden':'fehlt'}. Antippen zum Umschalten." aria-pressed="${Boolean(n)}">
+    const cardPhoto=n>0?scanPhotoUrls.get(card.id):null;
+    return `<article class="card design-${designKind(card.k)} ${n?'owned':''} ${cardPhoto?'has-card-photo':''}" data-card-id="${escapeHTML(card.id)}" role="button" tabindex="0" aria-label="Karte ${escapeHTML(card.id)}, ${escapeHTML(player)}, ${n?'vorhanden':'fehlt'}. Antippen zum Umschalten." aria-pressed="${Boolean(n)}">
       <div class="corner-check">✓</div>
       <div class="card-head">
         <div class="badge">${escapeHTML(card.k)}</div>
         <div class="num">#${escapeHTML(card.id)}</div>
       </div>
       <div class="art">
-        
+        ${cardPhoto?`<img class="scanned-card-image" src="${escapeHTML(cardPhoto)}" alt="Scan von Karte ${escapeHTML(card.id)}" loading="lazy">`: ''}
         <div class="design-geometry" aria-hidden="true"></div>
         <div class="silhouette"></div>
         <div class="initials">${escapeHTML(initials(player))}</div>
@@ -802,6 +820,47 @@ $('csvMissing').addEventListener('click',()=>{
 });
 
 
+
+// V16: Freigestellte Kartenbilder in IndexedDB, getrennt von der Sammlungszählung.
+const SCAN_DB='match-attax-card-images-v1';
+const scanPhotoUrls=new Map();
+let scanPhotoDBPromise=null;
+function openScanPhotoDB(){
+ if(!('indexedDB' in window))return Promise.reject(Error('Bildspeicherung wird von diesem Browser nicht unterstützt.'));
+ if(!scanPhotoDBPromise)scanPhotoDBPromise=new Promise((resolve,reject)=>{
+  const request=indexedDB.open(SCAN_DB,1);
+  request.onupgradeneeded=()=>request.result.createObjectStore('photos');
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error||Error('Bilderdatenbank nicht verfügbar'));
+ });
+ return scanPhotoDBPromise;
+}
+async function readSavedPhotos(){
+ try{
+  const db=await openScanPhotoDB();
+  const entries=await new Promise((resolve,reject)=>{
+   const tx=db.transaction('photos','readonly'),store=tx.objectStore('photos');
+   const result=[];
+   const cursor=store.openCursor();
+   cursor.onsuccess=()=>{const c=cursor.result;if(c){result.push([c.key,c.value]);c.continue()}else resolve(result)};
+   cursor.onerror=()=>reject(cursor.error);
+  });
+  for(const [id,blob] of entries){if(scanPhotoUrls.has(id))URL.revokeObjectURL(scanPhotoUrls.get(id));scanPhotoUrls.set(id,URL.createObjectURL(blob));}
+  render();
+ }catch(err){console.warn('Fotos konnten nicht geladen werden:',err)}
+}
+async function putSavedPhoto(id,blob){
+ const db=await openScanPhotoDB();
+ await new Promise((resolve,reject)=>{
+  const tx=db.transaction('photos','readwrite');
+  tx.objectStore('photos').put(blob,id);
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('Foto konnte nicht gespeichert werden'));
+ });
+ if(scanPhotoUrls.has(id))URL.revokeObjectURL(scanPhotoUrls.get(id));
+ scanPhotoUrls.set(id,URL.createObjectURL(blob));
+ render();
+}
+
 // V11: Nur Nummernerkennung. Keine Kartenscans oder Bilder werden gespeichert.
 // Der schnelle Nummernscanner arbeitet unabhängig vom manuellen Kartenzuschnitt.
 let autoObjectUrl=null, autoWorker=null;
@@ -833,7 +892,7 @@ function scanUpdateSelection(){
  }
  $('autoScanConfirm').textContent=n>0?'Weitere Karte hinzufügen':'Karte hinzufügen';
 }
-function scanFinishAdd(id){
+async function scanFinishAdd(id){
  const card=cards.find(c=>c.id===id);if(!card)return;
  const oldCount=counts[id]||0;
  if(oldCount && !confirm('Karte #'+id+' ist bereits '+oldCount+'× vorhanden. Als weiteres Exemplar hinzufügen?'))return;
@@ -845,6 +904,17 @@ function scanFinishAdd(id){
   if(!saveNames()){
    if(old===undefined)delete customNames[id]; else customNames[id]=old;
    $('autoScanResult').textContent='Name konnte nicht gespeichert werden. Bitte erneut versuchen.';
+   return;
+  }
+ }
+ if($('scanSavePhoto').checked && scanImage && scanCorners){
+  try{
+   const full=scanWarpCorners(600,850);
+   const blob=await new Promise(resolve=>full.toBlob(resolve,'image/jpeg',.78));
+   if(!blob)throw Error('Bild konnte nicht erstellt werden');
+   await putSavedPhoto(id,blob);
+  }catch(error){
+   $('autoScanResult').textContent='Bildspeicherung fehlgeschlagen: '+error.message+'. Bitte erneut versuchen oder Foto-Speicherung ausschalten.';
    return;
   }
  }
@@ -913,27 +983,82 @@ function scanDraw(){
  scanContext.beginPath();box.forEach((p,i)=>i?scanContext.lineTo(p.x,p.y):scanContext.moveTo(p.x,p.y));scanContext.closePath();scanContext.stroke();
 }
 function scanBlend(a,b,t){return{x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};}
-function scanDetect(image){
- // Farbe/Helligkeitswechsel am Rand der Karte: grobe heuristische Suche.
- // Keine Erkennungssicherheit vortäuschen: Eckpunkte sind jederzeit korrigierbar.
- const c=document.createElement('canvas'), max=320;
- const factor=Math.min(1,max/Math.max(image.naturalWidth,image.naturalHeight));
- c.width=Math.round(image.naturalWidth*factor);c.height=Math.round(image.naturalHeight*factor);
- const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);
- const data=ctx.getImageData(0,0,c.width,c.height).data;
- const pixel=(x,y)=>{const i=(Math.floor(y)*c.width+Math.floor(x))*4;return[data[i],data[i+1],data[i+2]]};
- const corners=[[0,0],[c.width-1,0],[c.width-1,c.height-1],[0,c.height-1]];
- const bg=corners.map(([x,y])=>pixel(x,y));
- const dist=(p,q)=>Math.abs(p[0]-q[0])+Math.abs(p[1]-q[1])+Math.abs(p[2]-q[2]);
- let minX=c.width,maxX=0,minY=c.height,maxY=0,hits=0;
- for(let y=8;y<c.height-8;y+=3){for(let x=8;x<c.width-8;x+=3){
-   const p=pixel(x,y),distance=Math.min(...bg.map(b=>dist(p,b)));
-   if(distance>95){minX=Math.min(x,minX);maxX=Math.max(x,maxX);minY=Math.min(y,minY);maxY=Math.max(y,maxY);hits++;}
- }}
- const width=maxX-minX,height=maxY-minY;
- const valid=hits>100&&width>c.width*.27&&height>c.height*.27&&width<c.width*.92&&height<c.height*.95;
- const box=valid?{l:Math.max(.02,minX/c.width),r:Math.min(.98,maxX/c.width),t:Math.max(.02,minY/c.height),b:Math.min(.98,maxY/c.height)}:{l:.07,r:.93,t:.05,b:.95};
- return [{x:box.l,y:box.t},{x:box.r,y:box.t},{x:box.r,y:box.b},{x:box.l,y:box.b}];
+let scanCVPromise=null;
+function scanLoadCV(){
+ if(window.cv && window.cv.Mat)return Promise.resolve(window.cv);
+ if(scanCVPromise)return scanCVPromise;
+ scanCVPromise=new Promise((resolve,reject)=>{
+  const timeout=setTimeout(()=>reject(Error('OpenCV benötigt zu lange zum Laden')),22000);
+  const check=()=>{
+   if(window.cv && window.cv.Mat){clearTimeout(timeout);resolve(window.cv);return true;}
+   return false;
+  };
+  if(check())return;
+  const script=document.createElement('script');
+  script.src='https://docs.opencv.org/4.x/opencv.js';
+  script.async=true;
+  script.onload=()=>{
+   if(check())return;
+   if(window.cv&&typeof window.cv.onRuntimeInitialized!=='undefined')window.cv.onRuntimeInitialized=()=>check();
+   let tries=0;const poll=()=>{if(check())return;if(++tries<45)setTimeout(poll,350);};poll();
+  };
+  script.onerror=()=>{clearTimeout(timeout);reject(Error('OpenCV konnte nicht geladen werden'))};
+  document.head.appendChild(script);
+ }).catch(err=>{scanCVPromise=null;throw err});
+ return scanCVPromise;
+}
+function scanFallback(){return [{x:.13,y:.18},{x:.86,y:.19},{x:.86,y:.91},{x:.10,y:.90}];}
+async function scanDetect(image){
+ const cv=await scanLoadCV();
+ const target=document.createElement('canvas');
+ const scale=Math.min(1,850/Math.max(image.naturalWidth,image.naturalHeight));
+ target.width=Math.round(image.naturalWidth*scale);target.height=Math.round(image.naturalHeight*scale);
+ const ctx=target.getContext('2d');ctx.drawImage(image,0,0,target.width,target.height);
+ const mats=[];const keep=(m)=>{mats.push(m);return m};
+ try{
+  const src=keep(cv.imread(target));
+  const gray=keep(new cv.Mat()),blur=keep(new cv.Mat()),edges=keep(new cv.Mat()),closed=keep(new cv.Mat());
+  cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+  cv.GaussianBlur(gray,blur,new cv.Size(5,5),0);
+  cv.Canny(blur,edges,30,105);
+  const kernel=keep(cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(5,5)));
+  cv.morphologyEx(edges,closed,cv.MORPH_CLOSE,kernel);
+  const contours=keep(new cv.MatVector()),hierarchy=keep(new cv.Mat());
+  cv.findContours(closed,contours,hierarchy,cv.RETR_LIST,cv.CHAIN_APPROX_SIMPLE);
+  let best=null,score=-Infinity;
+  const fullArea=target.width*target.height;
+  for(let i=0;i<contours.size();i++){
+   const contour=contours.get(i);
+   try{
+    const area=cv.contourArea(contour)/fullArea;
+    if(area<.15 || area>.91)continue;
+    const length=cv.arcLength(contour,true);
+    for(const eps of [.014,.025,.04,.055]){
+     const approx=new cv.Mat();
+     try{
+      cv.approxPolyDP(contour,approx,length*eps,true);
+      if(approx.rows!==4||!cv.isContourConvex(approx))continue;
+      const p=[];for(let j=0;j<4;j++)p.push({x:approx.data32S[j*2]/target.width,y:approx.data32S[j*2+1]/target.height});
+      const sum=p.map(v=>v.x+v.y),diff=p.map(v=>v.x-v.y);
+      const tl=p[sum.indexOf(Math.min(...sum))],br=p[sum.indexOf(Math.max(...sum))];
+      const tr=p[diff.indexOf(Math.max(...diff))],bl=p[diff.indexOf(Math.min(...diff))];
+      const ordered=[tl,tr,br,bl];
+      if(new Set(ordered).size!==4)continue;
+      const distance=(a,b)=>Math.hypot((a.x-b.x)*target.width,(a.y-b.y)*target.height);
+      const wide=(distance(tl,tr)+distance(bl,br))/2;
+      const tall=(distance(tl,bl)+distance(tr,br))/2;
+      const ratio=wide/tall;if(ratio<.53||ratio>.88)continue;
+      const center=ordered.reduce((a,p)=>({x:a.x+p.x/4,y:a.y+p.y/4}),{x:0,y:0});
+      const pointsScore=area*13-Math.abs(ratio-.71)*3-Math.hypot(center.x-.5,center.y-.52)*2;
+      if(pointsScore>score){best=ordered.map(v=>({...v}));score=pointsScore;}
+      break;
+     }finally{approx.delete();}
+    }
+   }finally{contour.delete();}
+  }
+  if(!best)return {corners:scanFallback(),found:false,message:'Keine sichere Kartenkontur erkannt. Bitte die vier Ecken selbst ausrichten.'};
+  return {corners:best,found:true,message:'Kontur automatisch erkannt. Bitte die grünen Eckpunkte mit den tatsächlichen Kartenrändern vergleichen.'};
+ }finally{for(const m of mats.reverse())m.delete()}
 }
 function scanCoords(e){const r=scanView.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
 scanView.addEventListener('pointerdown',e=>{
@@ -949,32 +1074,63 @@ scanView.addEventListener('pointermove',e=>{
  scanCorners[scanDrag]=scanCoords(e);scanDraw();e.preventDefault();
 });
 scanView.addEventListener('pointerup',e=>{
- if(scanDrag<0)return;scanDrag=-1;scanReadCorner();
+ if(scanDrag<0)return;scanDrag=-1;scanPreviewCard().catch(console.warn);scanReadCorner();
 });
 scanView.addEventListener('pointercancel',()=>scanDrag=-1);
 // Nummernzone: Nur der Bereich unter dem Topps-Logo wird gelesen.
 // Mehrere Ausschnitte helfen bei leicht schrägen Fotos und abweichenden Kartendesigns.
-function scanCornerCanvas(region){
- const [u0,v0,u1,v1]=region,w=800,h=Math.max(180,Math.round(800*(v1-v0)/(u1-u0)*.74));
- const temp=document.createElement('canvas');temp.width=w;temp.height=h;
- const ctx=temp.getContext('2d',{willReadFrequently:true});
+// Rechnet die vier Ecken perspektivisch auf ein gerades Rechteck um.
+function scanLinearSolve(a,b){
+ for(let i=0;i<8;i++){
+  let p=i;for(let j=i+1;j<8;j++)if(Math.abs(a[j][i])>Math.abs(a[p][i]))p=j;
+  if(Math.abs(a[p][i])<1e-9)throw Error('Kartenecken sind nicht eindeutig angeordnet.');
+  [a[i],a[p]]=[a[p],a[i]];[b[i],b[p]]=[b[p],b[i]];
+  const divisor=a[i][i];for(let k=i;k<8;k++)a[i][k]/=divisor;b[i]/=divisor;
+  for(let j=0;j<8;j++)if(j!==i){const f=a[j][i];for(let k=i;k<8;k++)a[j][k]-=f*a[i][k];b[j]-=f*b[i];}
+ }
+ return b;
+}
+function scanWarpCorners(width=650,height=920){
+ if(!scanImage||!scanCorners)throw Error('Keine Karte aufgenommen');
  const original=document.createElement('canvas');original.width=scanImage.naturalWidth;original.height=scanImage.naturalHeight;
  const octx=original.getContext('2d',{willReadFrequently:true});octx.drawImage(scanImage,0,0);
- const source=octx.getImageData(0,0,original.width,original.height),out=ctx.createImageData(w,h);
- const [tl,tr,br,bl]=scanCorners;
- for(let y=0;y<h;y++){
-  const v=v0+(y/(h-1))*(v1-v0);
-  for(let x=0;x<w;x++){
-   const u=u0+(x/(w-1))*(u1-u0);
-   const top=scanBlend(tl,tr,u),bottom=scanBlend(bl,br,u),p=scanBlend(top,bottom,v);
-   const sx=Math.max(0,Math.min(source.width-1,Math.round(p.x*(source.width-1))));
-   const sy=Math.max(0,Math.min(source.height-1,Math.round(p.y*(source.height-1))));
-   const si=(sy*source.width+sx)*4,di=(y*w+x)*4;
-   out.data[di]=source.data[si];out.data[di+1]=source.data[si+1];out.data[di+2]=255;
-   out.data[di+3]=255;
+ const src=octx.getImageData(0,0,original.width,original.height);
+ const W=original.width-1,H=original.height-1;
+ const positions=[[0,0],[1,0],[1,1],[0,1]];
+ const A=[],b=[];
+ for(let k=0;k<4;k++){
+  const [u,v]=positions[k];const x=scanCorners[k].x*W,y=scanCorners[k].y*H;
+  A.push([u,v,1,0,0,0,-x*u,-x*v]);b.push(x);
+  A.push([0,0,0,u,v,1,-y*u,-y*v]);b.push(y);
+ }
+ const h=scanLinearSolve(A,b);
+ const out=document.createElement('canvas');out.width=width;out.height=height;
+ const ctx=out.getContext('2d',{willReadFrequently:true}),pixel=ctx.createImageData(width,height);
+ const ds=pixel.data,s=src.data;
+ for(let y=0;y<height;y++){
+  const v=y/(height-1);
+  for(let x=0;x<width;x++){
+   const u=x/(width-1),d=h[6]*u+h[7]*v+1;
+   const sx=Math.max(0,Math.min(W,Math.round((h[0]*u+h[1]*v+h[2])/d)));
+   const sy=Math.max(0,Math.min(H,Math.round((h[3]*u+h[4]*v+h[5])/d)));
+   const si=(sy*src.width+sx)*4,di=(y*width+x)*4;
+   ds[di]=s[si];ds[di+1]=s[si+1];ds[di+2]=s[si+2];ds[di+3]=255;
   }
  }
- ctx.putImageData(out,0,0);return temp;
+ ctx.putImageData(pixel,0,0);return out;
+}
+function scanCornerCanvas(region){
+ const full=scanWarpCorners(650,920),[u0,v0,u1,v1]=region;
+ const out=document.createElement('canvas');out.width=800;
+ out.height=Math.max(180,Math.round(800*((v1-v0)*920)/((u1-u0)*650)));
+ out.getContext('2d').drawImage(full,u0*650,v0*920,(u1-u0)*650,(v1-v0)*920,0,0,out.width,out.height);
+ return out;
+}
+async function scanPreviewCard(){
+ if(!scanImage||!scanCorners)return;
+ const full=scanWarpCorners(540,768);
+ const img=$('autoScanPhotoPreview');
+ img.src=full.toDataURL('image/jpeg',.84);img.hidden=false;
 }
 function scanEnhance(canvas,kind){
  const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;
@@ -1058,8 +1214,8 @@ function scanOpenDialog(){
  $('autoScanName').focus({preventScroll:true});
 }
 function scanResetState(){
- $('autoScanResult').textContent='Karte fotografieren, dann grüne Kontur prüfen.';
- scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
+ $('autoScanResult').textContent='Karte fotografieren, dann die grüne Kontur prüfen.';
+ scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;$('autoScanPhotoPreview').hidden=true;$('scanQuality').hidden=true;
  scanSelectedNameId='';$('autoScanName').value='';
  autoSetOptions();scanUpdateSelection();
 }
@@ -1071,13 +1227,13 @@ $('startAutoScan').onclick=()=>{
 $('autoScanChoose').onclick=()=>{$('autoScanInput').click();};
 $('autoScanRetry').onclick=scanReadCorner;
 $('autoScanClose').onclick=()=>{
- $('autoScanDialog').close();scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;
+ $('autoScanDialog').close();scanImage=null;scanCorners=null;scanView.hidden=true;numberView.hidden=true;$('autoScanCropTools').hidden=true;$('autoScanPhotoPreview').hidden=true;$('scanQuality').hidden=true;
  if(autoObjectUrl){URL.revokeObjectURL(autoObjectUrl);autoObjectUrl=null;}
 };
 $('autoScanSelect').onchange=()=>{$('autoScanConfirm').disabled=!$('autoScanSelect').value;scanUpdateSelection();};
-$('autoScanConfirm').onclick=()=>{
+$('autoScanConfirm').onclick=async()=>{
  const id=$('autoScanSelect').value;if(!cards.some(c=>c.id===id))return;
- scanFinishAdd(id);
+ await scanFinishAdd(id);
 };
 $('autoScanInput').onchange=async e=>{
  const file=e.target.files?.[0];e.target.value='';if(!file)return;
@@ -1089,8 +1245,13 @@ $('autoScanInput').onchange=async e=>{
   autoObjectUrl=URL.createObjectURL(file);scanImage=new Image();scanImage.src=autoObjectUrl;await scanImage.decode();
   const max=700,scale=Math.min(1,max/Math.max(scanImage.naturalWidth,scanImage.naturalHeight));
   scanView.width=Math.round(scanImage.naturalWidth*scale);scanView.height=Math.round(scanImage.naturalHeight*scale);
-  scanCorners=scanDetect(scanImage);scanView.hidden=false;$('autoScanCropTools').hidden=false;
-  scanDraw();await scanReadCorner();
+  $('autoScanResult').textContent='Ermittle Kartenkontur mit OpenCV …';
+  let detected;
+  try{detected=await scanDetect(scanImage)}catch(error){detected={corners:scanFallback(),found:false,message:'Automatische Konturerkennung nicht verfügbar: '+error.message+'. Ecken bitte selbst ausrichten.'}}
+  scanCorners=detected.corners;
+  $('scanQuality').hidden=false;$('scanQuality').textContent=detected.message;
+  scanView.hidden=false;$('autoScanCropTools').hidden=false;
+  scanDraw();await scanPreviewCard();await scanReadCorner();
  }catch(err){$('autoScanResult').textContent='Foto konnte nicht geladen werden: '+(err.message||'Unbekannter Fehler');}
 };
 
@@ -1098,6 +1259,7 @@ $('autoScanInstant').checked=false;
 buildFilters();
 fillMissingFilters();
 render();
+readSavedPhotos();
 loadClubCrests();
 </script>
 </body>
