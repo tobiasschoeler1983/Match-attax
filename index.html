@@ -370,11 +370,14 @@ html,body{background:#080b18;color:var(--text)}body{max-width:1040px;margin:0 au
 .undo-toast{position:fixed;z-index:45;bottom:calc(86px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(92vw,480px);border-radius:14px;border:1px solid #829a4b;background:#242f24;color:#e9fbd1;box-shadow:0 10px 32px #000b;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 13px;font-size:12px}
 .undo-toast button{border:0;border-radius:8px;background:#d5fb69;color:#172319;padding:9px;font-size:12px;font-weight:850}.undo-toast #undoDismiss{background:transparent;color:#b7c9ae;font-size:18px}
 @media(max-width:370px){.card .player{font-size:11px}.card .qty button{width:31px;min-width:31px}}
+/* Visuelle Versionsanzeige, bewusst immer sichtbar */
+.version-chip{position:absolute;top:8px;right:8px;background:#d5fb69;color:#121a1d;border-radius:999px;font-size:12px;font-weight:900;padding:7px 11px;letter-spacing:.4px;z-index:5;box-shadow:0 4px 12px #0005}
+.header{position:relative}
 </style>
 </head>
 <body>
-<header class="header" id="top">
- <div class="brand"><div><div class="eyebrow">MEIN KARTENALBUM <span class="season">2026 / 27</span></div><h1>MATCH <em>ATTAX</em><span class="title-dot">.</span></h1><div class="sub">UEFA Club Competitions · Sammlungs-Tracker <span style="font-size:10px;opacity:.7">v19</span></div></div><div class="logo-chip">20<br><small>YEARS</small></div></div>
+<header class="header" id="top"><span class="version-chip" aria-label="App-Version 21">V21</span>
+ <div class="brand"><div><div class="eyebrow">MEIN KARTENALBUM <span class="season">2026 / 27</span></div><h1>MATCH <em>ATTAX</em><span class="title-dot">.</span></h1><div class="sub">UEFA Club Competitions · Sammlungs-Tracker</div></div><div class="logo-chip">20<br><small>YEARS</small></div></div>
  <div class="hero-progress"><div class="hero-copy"><div class="micro">DEIN SAMMELFORTSCHRITT</div><div class="hero-number"><span id="percent">0 %</span><span class="hero-caption">Komplett</span></div></div><div class="progress-ring" id="ring"><div id="ringCenter">0 %</div></div></div>
  <div class="stat-row"><div><strong id="owned">0</strong><span>Gesammelt</span></div><div><strong id="missing">559</strong><span>Fehlend</span></div><div><strong id="dupeCount">0</strong><span>Tauschbar</span></div></div>
  <div class="bar"><div id="progress"></div></div><span id="progressLabel" class="visually-hidden">0 von 559 Karten</span>
