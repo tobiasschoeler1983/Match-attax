@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0e131d">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Match Attax 26/27 · V26</title>
+<title>Match Attax 26/27 · V27</title>
 <style>
 /* =========================================================
    V24 – komplett neu aufgebautes, funktionales Layout
@@ -291,6 +291,10 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
 .scan-opts .check{margin:8px 0 0;font-size:13px;color:#c6cfdd}
 .scan-actions{display:flex;gap:8px;margin-top:10px}
 .scan-actions .btn{flex:1}
+.scan-diag{margin-top:10px;font-size:13px;color:var(--muted)}
+.scan-diag summary{cursor:pointer;padding:6px 0}
+.scan-diag pre{white-space:pre-wrap;word-break:break-word;background:var(--surface-2);border-radius:8px;padding:10px;font-size:12px;color:#c6cfdd;max-height:160px;overflow:auto}
+.scan-sharp{position:absolute;left:12px;top:10px;padding:4px 9px;border-radius:12px;background:rgba(10,14,22,.8);font-size:12px}
 .scan-msg{font-size:13px;color:var(--muted);padding:4px 2px}
 
 /* ---------- Update-Hinweis ---------- */
@@ -304,7 +308,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
 <header class="hero" id="hero">
   <div class="hero-top">
     <div><div class="eyebrow">Mein Kartenalbum · 2026/27</div><h1>Match Attax<span>UEFA Club Competitions · Sammlungs-Tracker</span></h1></div>
-    <span class="ver">V26</span>
+    <span class="ver">V27</span>
   </div>
   <div class="hero-main">
     <div class="ring" role="img" id="ring" aria-label="Sammelfortschritt">
@@ -413,7 +417,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   </div>
   <div class="menu-label">App</div>
   <div class="menu">
-    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 26</small></span><span class="chev">›</span></button>
+    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 27</small></span><span class="chev">›</span></button>
     <button type="button" id="openHelp"><span>Hilfe</span><span class="chev">›</span></button>
     <button type="button" id="reset" class="danger"><span style="color:var(--danger)">Sammlung zurücksetzen</span><span class="chev">›</span></button>
   </div>
@@ -477,6 +481,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
     <img id="scanStill" class="scan-still" alt="Erfasstes Kartenbild" hidden>
     <div class="scan-frame" id="scanFrame"></div>
     <div class="scan-status" id="scanStatus">Kamera wird gestartet …</div>
+    <div class="scan-sharp" id="scanSharp" hidden></div>
   </div>
   <div class="scan-panel">
     <div class="scan-results" id="scanResults"></div>
@@ -491,14 +496,21 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
     <div class="scan-actions">
       <button class="btn" type="button" id="scanResume" hidden>Weiter scannen</button>
       <button class="btn primary" type="button" id="scanShutter" hidden>Foto übernehmen</button>
-      <button class="btn" type="button" id="scanFileBtn">Foto aus Mediathek</button>
+      <button class="btn" type="button" id="scanNativeBtn">Kamera-App</button>
+      <button class="btn" type="button" id="scanFileBtn">Mediathek</button>
     </div>
+    <details class="scan-diag" id="scanDiag" hidden>
+      <summary>Was die Texterkennung gelesen hat</summary>
+      <pre id="scanDiagText"></pre>
+      <button class="btn" type="button" id="scanDiagSave">Scanbild speichern (zum Nachprüfen)</button>
+    </details>
     <div class="scan-opts" id="scanOpts">
       <label class="check"><input type="checkbox" id="optPhoto"> Kartenfoto beim Hinzufügen speichern (ersetzt den Platzhalter)</label>
       <label class="check"><input type="checkbox" id="optAuto"> Sicher erkannte, neue Karten sofort hinzufügen</label>
     </div>
   </div>
   <input type="file" id="scanFile" accept="image/*" hidden>
+  <input type="file" id="scanNative" accept="image/*" capture="environment" hidden>
 </div>
 
 <script>
@@ -511,7 +523,7 @@ const cards=[{"id":"1","n":"Luka Modrić","t":"Sonderserie","k":"Infinity"},{"id
    Die Schlüssel sind identisch mit V23 – vorhandene Daten
    werden unverändert weiterverwendet.
    ========================================================= */
-const APP_VERSION=26;
+const APP_VERSION=27;
 const STORAGE='match-attax-26-27-v2';
 const LEGACY_STORAGE='match-attax-26-27-v1';
 const NAMES_STORAGE='match-attax-26-27-custom-names-v1';
@@ -1208,7 +1220,7 @@ $('batchCommit').onclick=()=>{
    → Texterkennung auf Nummernbereich + gesamter Karte
    → Abgleich mit Nummern UND Spielernamen → Vorschläge.
    ========================================================= */
-const CARD_W=630,CARD_H=880;           // Seitenverhältnis 63 × 88 mm
+const CARD_W=720,CARD_H=1006;           // Seitenverhältnis 63 × 88 mm
 const scan={stream:null,track:null,running:false,paused:false,busy:false,mode:null,
   results:[],lastCanvas:null,lastTop:null,ignoreId:null,misses:0,ocr:null,ocrLoading:null,cycleTimer:null};
 
@@ -1262,7 +1274,7 @@ function clearBorderBlobs(g,w,h){
  * mode 'dark' : dunkle Schrift auf hellem Grund (Maximum der RGB-Kanäle)
  * Danach Kontrast strecken, so drehen, dass Schrift dunkel auf hell steht, optional binär (Otsu).
  */
-function enhance({cv,ctx,pad,w,h},binary,mode='light'){
+function enhance({cv,ctx,pad,w,h},binary,mode='light',win=0){
   const img=ctx.getImageData(pad,pad,w,h),d=img.data,len=w*h;
   const g=new Uint8ClampedArray(len),hist=new Uint32Array(256);
   for(let i=0,j=0;j<len;i+=4,j++){
@@ -1277,12 +1289,12 @@ function enhance({cv,ctx,pad,w,h},binary,mode='light'){
   let sum=0;for(let j=0;j<len;j++){const v=Math.max(0,Math.min(255,((g[j]-lo)*255/range)|0));g[j]=v;sum+=v}
   if(binary==='adaptive'){
     // Lokale Schwelle (Bradley): robust bei Verläufen und Foil-Reflexen
-    const S=Math.max(8,Math.round(Math.min(w,h)/10)),T=.12,I=new Float64Array((w+1)*(h+1));
+    const S=win||Math.max(8,Math.round(Math.min(w,h)/10)),T=.12,MINC=34,I=new Float64Array((w+1)*(h+1));
     for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){row+=g[y*w+x];I[(y+1)*(w+1)+x+1]=I[y*(w+1)+x+1]+row}}
     for(let y=0;y<h;y++){const y0=Math.max(0,y-S),y1=Math.min(h-1,y+S);
       for(let x=0;x<w;x++){const x0=Math.max(0,x-S),x1=Math.min(w-1,x+S),n=(x1-x0+1)*(y1-y0+1);
         const sum=I[(y1+1)*(w+1)+x1+1]-I[y0*(w+1)+x1+1]-I[(y1+1)*(w+1)+x0]+I[y0*(w+1)+x0];
-        g[y*w+x]=g[y*w+x]*n<sum*(1-T)?0:255}}
+        const v=g[y*w+x],mean=sum/n;g[y*w+x]=(v<mean*(1-T)&&mean-v>MINC)?0:255}}   // Mindestkontrast: schwache Muster fallen weg
     clearBorderBlobs(g,w,h);
     for(let i=0,j=0;j<len;i+=4,j++){d[i]=d[i+1]=d[i+2]=g[j];d[i+3]=255}
     ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.putImageData(img,pad,pad);
@@ -1364,45 +1376,82 @@ function namesFromText(text){
   return scores;
 }
 
-/** Ein kompletter Erkennungsdurchlauf auf einem Kartenbild (CARD_W × CARD_H) */
+/* ---------- Layoutunabhängige Auswertung ----------
+   Die Position der Kartennummer ist auf den Karten nicht einheitlich, und auf
+   der Karte stehen weitere Zahlen (Werte). Deshalb wird der gesamte Text der
+   Karte gelesen. Der Spielername ist das Hauptmerkmal; Nummer, Serienname
+   und Verein bestätigen bzw. unterscheiden Karten desselben Spielers.        */
+const CLASS_WORDS={'Man of the Match':['MAN OF THE MATCH','MOTM'],'Power Play':['POWER PLAY','POWERPLAY'],'Goaliaths':['GOALIATH'],
+  'Fortress':['FORTRESS'],'20th Anniversary':['ANNIVERSARY','20TH','20 YEARS'],'Leader':['LEADER'],'Attax Debutant':['DEBUT'],
+  'Infinity':['INFINITY'],'Slick':['SLICK'],'Genuine Genius':['GENIUS'],'All-Time 100 Club':['100 CLUB','ALL TIME','ALL-TIME'],
+  'Supreme Master':['SUPREME'],'Mystical':['MYSTIC'],'Attax Master':['ATTAX MASTER'],'Unbeatable 101':['UNBEATABLE'],'WHOOSH!':['WHOOSH'],
+  'Enigma':['ENIGMA'],'Age of Heroes':['HEROES'],'Greatest Hits':['GREATEST'],'Legends':['LEGEND'],'Black Nitro':['NITRO'],
+  'Festive Edition':['FESTIVE'],'Taktikkarte':['REFEREE','INJURY','AGENT']};
+const STOP=new Set(['F.C.','FC','CF','AFC','C.F.','S.L.','BC','THE','DE','REAL','CLUB']);
+const TEAM_WORDS=new Map(TEAMS.map(tm=>[tm,[...new Set((tm+' '+(CLUB_PAGES[tm]||'')).split(/\s+/).map(w=>norm(w).replace(/[^A-Z0-9]/g,'')).filter(w=>w.length>=4&&!STOP.has(w)))]]));
+const nameKey=c=>norm(cardName(c)).replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();
+function nameCounts(){const m=new Map();for(const c of cards){const k=nameKey(c);if(k)m.set(k,(m.get(k)||0)+1)}return m}
+
+function analyse(fullText,zoneText){
+  const flat=' '+norm(fullText).replace(/[^A-Z0-9]+/g,' ')+' ';
+  const names=namesFromText(fullText);
+  const nums=idsFromText(fullText,false);
+  const zone=zoneText?idsFromText(zoneText,true):new Map();
+  const clsFound=new Set(Object.entries(CLASS_WORDS).filter(([,ws])=>ws.some(w=>flat.includes(' '+norm(w).replace(/[^A-Z0-9]+/g,' ').trim()+' ')||flat.includes(norm(w).replace(/[^A-Z0-9]+/g,' ').trim()))).map(([k])=>k));
+  const teamFound=new Set([...TEAM_WORDS].filter(([,ws])=>ws.some(w=>flat.includes(' '+w+' '))).map(([tm])=>tm));
+  const counts=nameCounts();
+  const out=[];
+  for(const id of new Set([...names.keys(),...nums.keys(),...zone.keys()])){
+    const c=CARD.get(id),nm=names.get(id)||0,nz=zone.get(id)||0,nf=nums.get(id)||0,num=Math.max(nz,nf);
+    const cls=clsFound.has(c.k)?1:0,team=teamFound.has(c.t)?1:0;
+    const nameless=!nameKey(c);
+    let score;
+    if(nm>0) score=nm*10+num*6+cls*4+team*2+(c.k==='Basis'&&!clsFound.size?1:0);
+    else if(nameless&&!/^\d+$/.test(c.id)&&num>=1) score=10+cls*4;     // Sonderkarten ohne Namen: Präfixnummer (EN3, MY2 …)
+    else score=nz*6+nf*2+cls;                                           // nur eine Zahl: höchstens ein Vorschlag
+    out.push({id,score,name:nm,num,cls,team,unique:nm>0&&counts.get(nameKey(c))===1,nameless});
+  }
+  out.sort((a,b)=>b.score-a.score);
+  const top=out[0],second=out[1];
+  if(top){
+    const gap=second?top.score-second.score:99;
+    // Bildweise „sicher“: Name erkannt und eindeutig (einziger Spieler mit diesem Namen oder klar abgegrenzt)
+    top.sure=(top.name>=.75&&(top.unique||top.num>=.8||top.cls)&&gap>=3)||(top.nameless&&top.num>=1&&gap>=3);
+  }
+  return out.filter(r=>r.score>=5).slice(0,5);
+}
+
 /** Erkennung mit Zeitlimit; hängt die Texterkennung, wird sie neu gestartet */
-async function recognizeSafe(cv){
+async function recognizeSafe(cv,opts){
   if(ocrUses>=OCR_RECYCLE)await resetOCR();
   let timer;
   try{
-    return await Promise.race([recognize(cv),new Promise((_,rej)=>{timer=setTimeout(()=>rej(Object.assign(Error('timeout'),{timeout:true})),20000)})]);
+    return await Promise.race([recognize(cv,opts),new Promise((_,rej)=>{timer=setTimeout(()=>rej(Object.assign(Error('timeout'),{timeout:true})),25000)})]);
   }catch(e){
     await resetOCR();
-    if(e.timeout)return [];      // nächster Durchlauf mit frischem Worker
+    if(e.timeout)return [];
     throw e;
   }finally{clearTimeout(timer)}
 }
-async function recognize(cardCanvas){
+async function recognize(img,{zone=true}={}){
   const w=await loadOCR();
-  const num=new Map(),add=(m,f=1)=>{for(const [id,s] of m)num.set(id,Math.max(num.get(id)||0,Math.min(1,s*f)))};
-  const read=async(region,h,bin,mode)=>{ocrUses++;return (await w.recognize(enhance(cropRegion(cardCanvas,region,h),bin,mode))).data.text};
-  // 1) Nummernbereich oben rechts (unter dem Topps-Logo). Lokale Schwelle zuerst, Otsu als Ergänzung.
-  await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789AOHGWENFLMYBT '});
-  const NUM_ZONE=[.55,.04,.99,.30];
-  for(const mode of ['light','dark'])add(idsFromText(await read(NUM_ZONE,150,'adaptive',mode),true));
-  if(![...num.values()].some(s=>s>=.8))for(const mode of ['light','dark'])add(idsFromText(await read(NUM_ZONE,150,true,mode),true));
-  if(!num.size)for(const mode of ['light','dark'])add(idsFromText(await read([0,0,1,.24],150,'adaptive',mode),true),.85);
-  // 2) Gesamte Karte für den Spielernamen (helle und dunkle Schrift)
-  await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
-  const names=new Map();
-  for(const mode of ['light','dark']){
-    const text=await read([0,0,1,1],760,'adaptive',mode);
-    for(const [id,s] of namesFromText(text))names.set(id,Math.max(names.get(id)||0,s));
-    add(idsFromText(text,false),.3);   // Zahlen außerhalb der Nummernzone (z. B. Werte) zählen kaum
+  const read=async(region,h,bin,mode,win=0)=>{ocrUses++;return (await w.recognize(enhance(cropRegion(img,region,h),bin,mode,win))).data.text};
+  // Gesamter Text, helle und dunkle Schrift, verstreute Textblöcke (PSM 11)
+  await w.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:''});
+  // Kamerabild im Rahmen: Karte füllt das Bild. Foto: Karte nur ein Teil des Bildes → höhere Auflösung
+  const H=zone?Math.min(1100,Math.max(760,img.height)):Math.min(1300,Math.max(900,img.height));
+  // Schritt für Schritt – sobald das Ergebnis eindeutig ist, wird abgebrochen (spart auf dem Handy Zeit)
+  // Fenster der lokalen Schwelle an der Schriftgröße ausrichten, nicht an der Bildgröße
+  const WIN=Math.round(H/(zone?26:30));
+  let full=await read([0,0,1,1],H,'adaptive','light',WIN),zoneText='',res=analyse(full,'');
+  if(!res[0]?.sure){full+='\n'+await read([0,0,1,1],H,'adaptive','dark',WIN);res=analyse(full,'')}
+  if(zone&&!res[0]?.sure){
+    await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789AOHGWENFLMYBT '});
+    zoneText=[await read([.55,.04,.99,.30],150,'adaptive','light'),await read([.55,.04,.99,.30],150,'adaptive','dark')].join('\n');
+    res=analyse(full,zoneText);
   }
-  // 3) Kombinieren: Nummer zählt am meisten, Name bestätigt
-  const ranked=[];
-  for(const id of new Set([...num.keys(),...names.keys()])){
-    const a=num.get(id)||0,b=names.get(id)||0;
-    ranked.push({id,score:a*10+b*6+(a>=.6&&b>=.4?5:0),num:a,name:b});
-  }
-  ranked.sort((x,y)=>y.score-x.score);
-  return ranked.filter(r=>r.score>=4).slice(0,4);
+  scan.lastText=full.replace(/\n{2,}/g,'\n').trim()+(zoneText.trim()?'\n— Nummernbereich: '+zoneText.replace(/\s+/g,' ').trim():'');
+  return res;
 }
 
 /* ---------- Kamera ---------- */
@@ -1427,9 +1476,33 @@ function grabCard(){
   ctx.drawImage(video,(fx-ox)/scale,(fy-oy)/scale,fw/scale,fh/scale,0,0,CARD_W,CARD_H);
   return cv;
 }
+/** Schärfe des Rahmeninhalts (Varianz des Laplace-Filters auf einem kleinen Graubild) */
+const sharpCv=document.createElement('canvas');sharpCv.width=150;sharpCv.height=210;
+const sharpCtx=sharpCv.getContext('2d',{willReadFrequently:true});
+function measureSharpness(){
+  const vw=video.videoWidth,vh=video.videoHeight;if(!vw)return 0;
+  const W=stage.clientWidth,H=stage.clientHeight,scale=Math.max(W/vw,H/vh),ox=(W-vw*scale)/2,oy=(H-vh*scale)/2;
+  sharpCtx.drawImage(video,(frame.offsetLeft-ox)/scale,(frame.offsetTop-oy)/scale,frame.offsetWidth/scale,frame.offsetHeight/scale,0,0,150,210);
+  const d=sharpCtx.getImageData(0,0,150,210).data,w=150,h=210,g=new Float32Array(w*h);
+  for(let i=0,j=0;j<w*h;i+=4,j++)g[j]=d[i]*.299+d[i+1]*.587+d[i+2]*.114;
+  let s=0,s2=0,n=0;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x,l=4*g[i]-g[i-1]-g[i+1]-g[i-w]-g[i+w];s+=l;s2+=l*l;n++}
+  const m=s/n;return s2/n-m*m;
+}
+/** Über ca. 0,5 s mehrere Bilder ansehen und das schärfste nehmen – Wackeln wird so herausgefiltert */
+async function grabSharpest(){
+  let best=null,bestS=-1;
+  for(let i=0;i<6;i++){
+    const s=measureSharpness();
+    if(s>bestS){bestS=s;best=grabCard()}
+    await new Promise(r=>setTimeout(r,80));
+  }
+  scan.sharpRef=Math.max((scan.sharpRef||0)*.97,bestS);
+  return {cv:best,sharp:bestS,rel:scan.sharpRef?bestS/scan.sharpRef:1};
+}
 /** Bild aus Datei: größtmöglicher mittiger Ausschnitt im Kartenformat */
 function cardFromImage(img){
-  const iw=img.naturalWidth,ih=img.naturalHeight,ratio=63/88;
+  const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height,ratio=63/88;
   let w=iw,h=w/ratio;if(h>ih){h=ih;w=h*ratio}
   const cv=document.createElement('canvas');cv.width=CARD_W;cv.height=CARD_H;
   cv.getContext('2d').drawImage(img,(iw-w)/2,(ih-h)/2,w,h,0,0,CARD_W,CARD_H);
@@ -1437,7 +1510,7 @@ function cardFromImage(img){
 }
 async function startCamera(){
   if(!navigator.mediaDevices?.getUserMedia)throw Error('Kamera wird von diesem Browser nicht unterstützt');
-  const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
+  const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1440}}});
   scan.stream=stream;scan.track=stream.getVideoTracks()[0];
   video.srcObject=stream;await video.play().catch(()=>{});
   await new Promise(r=>{if(video.videoWidth)r();else video.onloadedmetadata=()=>r()});
@@ -1460,7 +1533,8 @@ $('scanTorch').onclick=async()=>{
 /* ---------- Ablaufsteuerung ---------- */
 function setStatus(text,busy=false){const s=$('scanStatus');s.textContent=text;s.classList.toggle('busy',busy)}
 async function openScanner(mode={}){
-  scan.mode=mode;scan.results=[];scan.paused=false;scan.lastTop=null;scan.ignoreId=null;scan.lastCanvas=null;resetVotes();
+  scan.mode=mode;scan.results=[];scan.paused=false;scan.lastTop=null;scan.ignoreId=null;scan.lastCanvas=null;scan.sharpRef=0;scan.lastText='';resetVotes();
+  $('scanDiag').hidden=true;$('scanSharp').hidden=true;
   $('scanner').hidden=false;document.body.classList.add('scanner-open');document.body.style.overflow='hidden';
   const photoMode=!!mode.photoFor;
   $('scanTitle').textContent=photoMode?`Foto für #${mode.photoFor}`:'Karte scannen';
@@ -1498,78 +1572,81 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('scanner').hidde
 
 function scheduleCycle(ms){clearTimeout(scan.cycleTimer);if(scan.running&&!scan.paused)scan.cycleTimer=setTimeout(cycle,ms)}
 /**
- * Jedes Kamerabild liefert Kandidaten. Statt zu verlangen, dass zwei Bilder
- * direkt hintereinander dasselbe ergeben, werden Stimmen über die letzten
- * Bilder gesammelt (ältere zählen weniger). Ein unscharfes Zwischenbild
- * verwirft einen Treffer damit nicht mehr.
+ * Stimmen über mehrere scharfe Bilder sammeln (ältere zählen weniger).
+ * „Sicher“ wird eine Karte erst, wenn ihr Name gelesen wurde und sie sich
+ * eindeutig von anderen Kandidaten abhebt.
  */
 function resetVotes(){scan.votes=new Map();scan.frameNo=0;scan.misses=0}
 function castVotes(res){
   scan.frameNo++;
-  for(const [id,v] of scan.votes){v.acc*=.55;if(v.acc<1.5&&scan.frameNo-v.last>3)scan.votes.delete(id)}
+  for(const [id,v] of scan.votes){v.acc*=.6;if(v.acc<2&&scan.frameNo-v.last>3)scan.votes.delete(id)}
   for(const r of res){
     let v=scan.votes.get(r.id);
-    if(!v){v={id:r.id,acc:0,numHits:0,nameHits:0,both:false,first:scan.frameNo,last:0};scan.votes.set(r.id,v)}
+    if(!v){v={id:r.id,acc:0,sureHits:0,nameHits:0,numHits:0,clsHits:0,unique:r.unique,first:scan.frameNo,last:0};scan.votes.set(r.id,v)}
     v.acc+=r.score;v.last=scan.frameNo;
-    if(r.num>=.6)v.numHits++;
-    if(r.name>=.4)v.nameHits++;
-    if(r.num>=.6&&r.name>=.4)v.both=true;
+    if(r.sure)v.sureHits++;if(r.name>=.5)v.nameHits++;if(r.num>=.8)v.numHits++;if(r.cls)v.clsHits++;
   }
   return [...scan.votes.values()].sort((x,y)=>y.acc-x.acc);
 }
+const reasonOf=v=>v.nameHits&&v.numHits?'Name + Nummer':v.nameHits?'Name':'Nummer';
 async function cycle(){
   if(!scan.running||scan.paused||scan.busy||$('scanner').hidden)return;
   if(document.activeElement===$('scanInput')&&$('scanInput').value.trim()){scheduleCycle(800);return}
-  const cv=grabCard();if(!cv){scheduleCycle(500);return}
   scan.busy=true;
   try{
+    const {cv,rel}=await grabSharpest();
+    if(!cv||!scan.running||scan.paused){scheduleCycle(300);return}
+    $('scanSharp').hidden=false;
+    $('scanSharp').textContent=rel>=.6?'Schärfe gut':rel>=.35?'Schärfe mittel':'Unscharf';
+    if(rel<.35){setStatus('Bewegung erkannt – kurz ruhig halten',true);scheduleCycle(50);return}
     if(!scan.ocr)setStatus('Texterkennung wird geladen …',true);
-    const ranked=await recognizeSafe(cv);
+    const ranked=await recognizeSafe(cv,{zone:true});
     if(!scan.running||scan.paused)return;
-    // Gerade erfasste Karte liegt noch im Rahmen → auf die nächste warten
-    // Erst nach 3 Bildern ohne diese Karte gilt sie als entfernt (ein unscharfes Bild reicht nicht)
+    // Gerade erfasste/übersprungene Karte noch im Rahmen → auf die nächste warten
     if(scan.ignoreId&&ranked.some(r=>r.id===scan.ignoreId))scan.ignoreGone=0;
     else if(scan.ignoreId&&++scan.ignoreGone>=3)scan.ignoreId=null;
-    if(scan.ignoreId&&(ranked[0]?.id===scan.ignoreId||!ranked.length)){setStatus(count(scan.ignoreId)?'✓ – nächste Karte in den Rahmen':'Übersprungen – nächste Karte in den Rahmen',true);scheduleCycle(300);return}
-    // Schwache Einzeltreffer (z. B. eine einzelne Ziffer ohne passenden Namen) nicht werten
-    const res=ranked.filter(r=>r.id!==scan.ignoreId&&(r.score>=8||r.name>=.4));
-    if(res.length){scan.misses=0;scan.lastCanvas=cv}else scan.misses++;
+    if(scan.ignoreId&&(ranked[0]?.id===scan.ignoreId||!ranked.length)){setStatus(count(scan.ignoreId)?'✓ – nächste Karte in den Rahmen':'Übersprungen – nächste Karte in den Rahmen',true);scheduleCycle(150);return}
+    const res=ranked.filter(r=>r.id!==scan.ignoreId);
+    if(res.length){scan.misses=0;scan.lastCanvas=cv}else{scan.misses++;scan.diagCanvas=cv}
     const votes=castVotes(res);
     const top=votes[0],second=votes[1];
     if(!top){
-      setStatus(scan.ignoreId?'Erfasst ✓ – nächste Karte in den Rahmen':scan.misses>=4?'Nichts erkannt – Karte näher, ruhiger, ohne Spiegelung halten':'Suche Kartennummer …',true);
-      scheduleCycle(250);return;
+      setStatus(scan.misses>=4?'Kein Name lesbar – Karte näher heran, Spiegelung vermeiden':'Lese Karte …',true);
+      if(scan.misses>=4)showDiag();
+      scheduleCycle(150);return;
     }
-    // „Sicher“ nur, wenn Nummer UND Name passen – oder bei Karten ohne hinterlegten Namen die Nummer mehrfach gelesen wurde.
-    // Nur die Nummer allein ergibt einen Vorschlag, den du bestätigst.
-    const nameless=!(cardName(CARD.get(top.id))||'').trim();
-    const strong=top.both||(top.nameHits>=1&&top.numHits>=1)||(nameless&&top.numHits>=2);
-    const clear=!second||top.acc>=second.acc*1.6;
+    const clear=!second||top.acc>=second.acc*1.4;
+    // sicher: ein eindeutiges Einzelbild – oder mehrere Bilder lesen den Namen und Nummer/Serie/Eindeutigkeit grenzt ab
+    const sure=clear&&(top.sureHits>=1||(top.nameHits>=2&&(top.unique||top.numHits>=1||top.clsHits>=1)));
     const age=scan.frameNo-top.first;
-    if(!(strong&&clear)&&age<3){
-      setStatus(`Prüfe #${top.id} … Karte ruhig halten`,true);scheduleCycle(80);return;
-    }
-    // Entscheidung: sicher, oder nach mehreren Bildern als Vorschlag zeigen
-    const sure=strong&&clear;
-    const list=votes.filter((v,i)=>i===0||(!sure&&v.acc>=top.acc*.4)).slice(0,3);
-    showResults(list.map(v=>({id:v.id,sure:v===top&&sure,reason:v.numHits&&v.nameHits?'Nummer + Name':v.numHits?'Nummer':'Name'})));
+    if(!sure&&age<2){setStatus(`Prüfe #${top.id} …`,true);scheduleCycle(50);return}
+    const list=votes.filter((v,i)=>i===0||(!sure&&v.acc>=top.acc*.35)).slice(0,4);
+    showResults(list.map(v=>({id:v.id,sure:v===top&&sure,reason:reasonOf(v)})));
     const c=CARD.get(top.id);
     if(sure&&prefs.auto&&!count(top.id)){await commitScan(top.id,true);return}
-    setStatus(sure?`Erkannt: #${c.id} ${displayName(c)}`:'Mögliche Treffer – bitte prüfen');
+    setStatus(sure?`Erkannt: #${c.id} ${displayName(c)}`:'Mehrere Möglichkeiten – bitte auswählen');
   }catch(err){
     console.warn(err);
     setStatus('Texterkennung nicht verfügbar (Internet?) – Nummer unten eingeben');
     scan.running=false;scan.paused=true;$('scanResume').hidden=!scan.stream;
   }finally{scan.busy=false}
 }
+function showDiag(){
+  if(!scan.lastText)return;
+  $('scanDiag').hidden=false;$('scanDiagText').textContent=scan.lastText||'(kein Text gelesen)';
+}
+$('scanDiagSave').onclick=()=>{
+  const cv=scan.lastCanvas||scan.diagCanvas;if(!cv){toast('Kein Scanbild vorhanden');return}
+  cv.toBlob(b=>{const a=document.createElement('a'),u=URL.createObjectURL(b);a.href=u;a.download='scan-'+Date.now()+'.jpg';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)},'image/jpeg',.9);
+};
 function showResults(list){
-  scan.paused=true;scan.results=list;
+  scan.paused=true;scan.results=list;showDiag();
   if(scan.lastCanvas){$('scanStill').src=scan.lastCanvas.toDataURL('image/jpeg',.8);$('scanStill').hidden=false;frame.classList.add('found')}
   $('scanResume').hidden=!scan.stream;
   renderScanResults();
 }
 function resumeScan(){
-  scan.paused=false;scan.results=[];scan.lastTop=null;resetVotes();
+  scan.paused=false;scan.results=[];scan.lastTop=null;resetVotes();$('scanDiag').hidden=true;$('scanDiag').open=false;
   $('scanStill').hidden=true;frame.classList.remove('found');$('scanResume').hidden=true;
   renderScanResults();
   if(scan.stream){scan.running=true;setStatus('Karte formatfüllend in den Rahmen halten',true);scheduleCycle(300)}
@@ -1627,24 +1704,66 @@ $('scanShutter').onclick=async()=>{
   catch(e){toast('Foto konnte nicht gespeichert werden')}
 };
 
-/* Foto aus Datei/Mediathek */
+/**
+ * Karte im Foto finden: Hintergrundfarbe am Bildrand schätzen, alles deutlich
+ * Abweichende gehört zur Karte. Ergebnis: Ausschnitt um die Karte (mit Rand).
+ */
+function locateCard(img){
+  const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height,k=300/Math.max(iw,ih);
+  const w=Math.max(1,Math.round(iw*k)),h=Math.max(1,Math.round(ih*k));
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data,px=(i)=>[d[i*4],d[i*4+1],d[i*4+2]];
+  const border=[];for(let i=0;i<w;i++){border.push(px(i),px((h-1)*w+i))}for(let j=0;j<h;j++){border.push(px(j*w),px(j*w+w-1))}
+  const med=[0,1,2].map(ch=>{const v=border.map(b=>b[ch]).sort((a,b)=>a-b);return v[v.length>>1]});
+  const colX=new Float32Array(w),rowY=new Float32Array(h);let total=0;
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const [r,g,b]=px(j*w+i);if(Math.abs(r-med[0])+Math.abs(g-med[1])+Math.abs(b-med[2])>70){colX[i]++;rowY[j]++;total++}}
+  if(total<w*h*.06)return null;
+  const range=(arr)=>{let acc=0,lo=0,hi=arr.length-1;for(let i=0;i<arr.length;i++){acc+=arr[i];if(acc>total*.02){lo=i;break}}acc=0;for(let i=arr.length-1;i>=0;i--){acc+=arr[i];if(acc>total*.02){hi=i;break}}return [lo,hi]};
+  const [x0,x1]=range(colX),[y0,y1]=range(rowY);
+  const bw=x1-x0,bh=y1-y0;if(bw*bh>w*h*.92)return null;
+  const m=.05;
+  return {x:Math.max(0,(x0-bw*m)/k),y:Math.max(0,(y0-bh*m)/k),w:Math.min(iw,(bw*(1+2*m))/k),h:Math.min(ih,(bh*(1+2*m))/k)};
+}
+/* Foto aus Kamera-App oder Mediathek: volle Auflösung, Autofokus und Bildstabilisierung des Telefons.
+   Kein Rahmen nötig – ausgewertet wird der gesamte Text im Bild. */
 $('scanFileBtn').onclick=()=>$('scanFile').click();
-$('scanFile').onchange=async e=>{
+$('scanNativeBtn').onclick=()=>$('scanNative').click();
+async function handlePhoto(e){
   const f=e.target.files?.[0];e.target.value='';if(!f)return;
   const url=URL.createObjectURL(f);
   try{
     const img=new Image();img.src=url;await img.decode();
-    const cv=cardFromImage(img);
-    scan.running=false;clearTimeout(scan.cycleTimer);
-    scan.lastCanvas=cv;$('scanStill').src=cv.toDataURL('image/jpeg',.8);$('scanStill').hidden=false;
+    scan.running=false;scan.paused=true;clearTimeout(scan.cycleTimer);
+    // Karte im Foto suchen und darauf zuschneiden; sonst das ganze Bild verwenden
+    const box=locateCard(img)||{x:0,y:0,w:img.naturalWidth,h:img.naturalHeight};
+    const k=Math.min(1,1300/Math.max(box.w,box.h));
+    const whole=document.createElement('canvas');whole.width=Math.round(box.w*k);whole.height=Math.round(box.h*k);
+    whole.getContext('2d').drawImage(img,box.x,box.y,box.w,box.h,0,0,whole.width,whole.height);
+    const card=cardFromImage(whole);           // für die Kartenvorschau/-foto
+    scan.lastCanvas=card;scan.diagCanvas=whole;$('scanStill').src=card.toDataURL('image/jpeg',.8);$('scanStill').hidden=false;
     if(scan.mode?.photoFor){setStatus('Bild geladen – „Foto übernehmen“ tippen');return}
     setStatus('Lese Karte …',true);
-    const ranked=await recognizeSafe(cv);
-    if(ranked.length){showResults(ranked.map((r,i)=>({id:r.id,sure:i===0&&r.num>=.8&&r.name>=.4,reason:r.num&&r.name?'Nummer + Name':r.num?'Nummer':'Name'})));setStatus('Bitte Treffer prüfen')}
-    else setStatus('Nichts erkannt – Nummer unten eingeben');
+    let ranked=await recognizeSafe(whole,{zone:false});
+    // Nicht eindeutig? Leicht gedreht erneut lesen (schräg gehaltene Karte)
+    for(const ang of [-7,7]){
+      if(ranked[0]?.sure)break;
+      setStatus('Lese Karte … (gedreht)',true);
+      const r=document.createElement('canvas');r.width=whole.width;r.height=whole.height;
+      const x=r.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,r.width,r.height);
+      x.translate(r.width/2,r.height/2);x.rotate(ang*Math.PI/180);x.drawImage(whole,-whole.width/2,-whole.height/2);
+      const more=await recognizeSafe(r,{zone:false});
+      if((more[0]?.sure&&!ranked[0]?.sure)||(more[0]?.score||0)>(ranked[0]?.score||0)+2)ranked=more;
+    }
+    resetVotes();
+    const top=ranked[0];
+    if(ranked.length){showResults(ranked.slice(0,4).map((r,i)=>({id:r.id,sure:i===0&&!!r.sure,reason:r.name&&r.num?'Name + Nummer':r.name?'Name':'Nummer'})));setStatus(top.sure?'Erkannt – bitte bestätigen':'Bitte Treffer auswählen')}
+    else{showDiag();setStatus('Nichts erkannt – Nummer unten eingeben')}
+    $('scanResume').hidden=!scan.stream;
   }catch(err){setStatus('Bild konnte nicht gelesen werden – Nummer unten eingeben')}
   finally{URL.revokeObjectURL(url)}
-};
+}
+$('scanFile').onchange=handlePhoto;
+$('scanNative').onchange=handlePhoto;
 
 /* =========================================================
    Update-Prüfung (GitHub Pages: version.json)

@@ -1,1 +1,1 @@
-{"version":26,"release":"2026-11-21","changes":"Scanner stabilisiert: Erkennung über mehrere Bilder, Texterkennung startet bei Bedarf neu, Randflächen werden ausgeblendet, Namensabgleich verbessert"}
+{"version":27,"release":"2026-11-21","changes":"Neuer Scanner: schärfstes Bild statt jedes Bild, Erkennung über Spielername + Nummer + Serie (unabhängig von der Kartenposition), Kamera-App-Foto mit automatischem Zuschnitt"}
