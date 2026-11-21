@@ -1,1 +1,1 @@
-{"version":27,"release":"2026-11-21","changes":"Neuer Scanner: schärfstes Bild statt jedes Bild, Erkennung über Spielername + Nummer + Serie (unabhängig von der Kartenposition), Kamera-App-Foto mit automatischem Zuschnitt"}
+{"version":28,"release":"2026-11-21","changes":"Scanner: Karte wird am Tisch erkannt (grüner Rahmen), Auslöser-Knopf, optional Automatik nur bei ruhig liegender Karte, Kartennummer gezielt gelesen und in zwei Bildern bestätigt"}
