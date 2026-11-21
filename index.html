@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0e131d">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Match Attax 26/27 · V28</title>
+<title>Match Attax 26/27 · V29</title>
 <style>
 /* =========================================================
    V24 – komplett neu aufgebautes, funktionales Layout
@@ -297,6 +297,11 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
 .scan-opts .check{margin:8px 0 0;font-size:13px;color:#c6cfdd}
 .scan-actions{display:flex;gap:8px;margin-top:10px}
 .scan-actions .btn{flex:1}
+.scan-mode{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.scan-mode .seg button{height:32px}
+.scan-mode .seg button.on{background:var(--accent);color:var(--accent-ink)}
+.scan-mode-note{font-size:12px;color:var(--muted)}
+.scanner.photos-only .scan-top h2::after{content:" · nur Fotos";color:var(--accent);font-weight:600}
 .scan-diag{margin-top:10px;font-size:13px;color:var(--muted)}
 .scan-diag summary{cursor:pointer;padding:6px 0}
 .scan-diag pre{white-space:pre-wrap;word-break:break-word;background:var(--surface-2);border-radius:8px;padding:10px;font-size:12px;color:#c6cfdd;max-height:160px;overflow:auto}
@@ -314,7 +319,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
 <header class="hero" id="hero">
   <div class="hero-top">
     <div><div class="eyebrow">Mein Kartenalbum · 2026/27</div><h1>Match Attax<span>UEFA Club Competitions · Sammlungs-Tracker</span></h1></div>
-    <span class="ver">V28</span>
+    <span class="ver">V29</span>
   </div>
   <div class="hero-main">
     <div class="ring" role="img" id="ring" aria-label="Sammelfortschritt">
@@ -410,6 +415,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   <h2 class="page-title">Mehr</h2>
   <div class="menu-label">Erfassen</div>
   <div class="menu">
+    <button type="button" id="openPhotoScan"><span>Kartenfotos scannen<small id="photoScanInfo">Fotos für vorhandene Karten aufnehmen – die Anzahl bleibt gleich</small></span><span class="chev">›</span></button>
     <button type="button" id="openBatch"><span>Schnellerfassung<small>Viele Nummern oder Bereiche wie 120-135 auf einmal</small></span><span class="chev">›</span></button>
   </div>
   <div class="menu-label">Listen</div>
@@ -423,7 +429,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   </div>
   <div class="menu-label">App</div>
   <div class="menu">
-    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 28</small></span><span class="chev">›</span></button>
+    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 29</small></span><span class="chev">›</span></button>
     <button type="button" id="openHelp"><span>Hilfe</span><span class="chev">›</span></button>
     <button type="button" id="reset" class="danger"><span style="color:var(--danger)">Sammlung zurücksetzen</span><span class="chev">›</span></button>
   </div>
@@ -492,6 +498,13 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
     <button class="scan-shoot" id="scanShoot" type="button" aria-label="Jetzt scannen"><span></span></button>
   </div>
   <div class="scan-panel">
+    <div class="scan-mode" id="scanModeBar">
+      <div class="seg text" role="group" aria-label="Scanmodus">
+        <button type="button" data-scanmode="collect">Sammeln</button>
+        <button type="button" data-scanmode="photos">Nur Fotos</button>
+      </div>
+      <span class="scan-mode-note" id="scanModeNote"></span>
+    </div>
     <div class="scan-results" id="scanResults"></div>
     <div class="scan-manual">
       <div class="search">
@@ -513,9 +526,9 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
       <button class="btn" type="button" id="scanDiagSave">Scanbild speichern (zum Nachprüfen)</button>
     </details>
     <div class="scan-opts" id="scanOpts">
-      <label class="check"><input type="checkbox" id="optPhoto"> Kartenfoto beim Hinzufügen speichern (ersetzt den Platzhalter)</label>
+      <label class="check" id="optPhotoRow"><input type="checkbox" id="optPhoto"> Kartenfoto beim Hinzufügen speichern (ersetzt den Platzhalter)</label>
       <label class="check"><input type="checkbox" id="optAutoShoot"> Automatisch auslösen, sobald eine Karte ruhig im Bild liegt</label>
-      <label class="check"><input type="checkbox" id="optAuto"> Sicher erkannte, neue Karten sofort hinzufügen</label>
+      <label class="check"><input type="checkbox" id="optAuto"> <span id="optAutoText">Sicher erkannte, neue Karten sofort hinzufügen</span></label>
     </div>
   </div>
   <input type="file" id="scanFile" accept="image/*" hidden>
@@ -532,7 +545,7 @@ const cards=[{"id":"1","n":"Luka Modrić","t":"Sonderserie","k":"Infinity"},{"id
    Die Schlüssel sind identisch mit V23 – vorhandene Daten
    werden unverändert weiterverwendet.
    ========================================================= */
-const APP_VERSION=28;
+const APP_VERSION=29;
 const STORAGE='match-attax-26-27-v2';
 const LEGACY_STORAGE='match-attax-26-27-v1';
 const NAMES_STORAGE='match-attax-26-27-custom-names-v1';
@@ -1151,6 +1164,7 @@ function download(name,text,type){
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 function renderMore(){
+  {const {owned,withPhoto}=photoProgress();$('photoScanInfo').textContent=owned?`${withPhoto} von ${owned} gesammelten Karten haben ein Foto – Anzahl bleibt beim Scannen gleich`:'Fotos für vorhandene Karten aufnehmen – die Anzahl bleibt gleich'}
   const last=Number(localStorage.getItem(BACKUP_KEY)||0);
   if(last){const days=Math.floor((Date.now()-last)/864e5);$('backupInfo').textContent='Letzte Sicherung: '+(days<1?'heute':days===1?'gestern':`vor ${days} Tagen`)}
   const owned=cards.filter(c=>count(c.id)).length;
@@ -1453,7 +1467,9 @@ async function recognizeCard(frames){
   }
   scan.lastText='Nummernbereich: '+(raw.filter(Boolean).join(' | ')||'–')+(fullText?'\n'+fullText:'');
   // Einzelne Ziffern ohne Namensbezug sind meist Rauschen; bei sicherem Treffer nur echte Alternativen zeigen
-  return out.filter((r,i)=>i===0||(r.score>=6&&(r.name>=.5||r.v>=1))&&(!top.sure||r.score>=top.score*.5)).slice(0,4);
+  // Einzelne, nur einmal gelesene Ziffer ohne Namensbezug ist Rauschen → gar nicht anzeigen
+  const plausible=r=>r.v>=.8||r.name>=.5;
+  return out.filter(plausible).filter((r,i,a)=>i===0||(r.score>=6&&(r.name>=.5||r.v>=1))&&(!a[0].sure||r.score>=a[0].score*.5)).slice(0,4);
 }
 
 /* ---------- Layoutunabhängige Auswertung ----------
@@ -1662,6 +1678,29 @@ $('scanTorch').onclick=async()=>{
 
 /* ---------- Ablaufsteuerung ---------- */
 function setStatus(text,busy=false){const s=$('scanStatus');s.textContent=text;s.classList.toggle('busy',busy)}
+/* ---------- Fotomodus: Bild speichern, Anzahl nicht ändern ---------- */
+const photosOnly=()=>!!scan.mode?.photosOnly;
+function photoProgress(){
+  const owned=cards.filter(c=>count(c.id));const withPhoto=owned.filter(c=>photoUrls.has(c.id)).length;
+  return {owned:owned.length,withPhoto};
+}
+function applyScanMode(){
+  const po=photosOnly(),single=!!scan.mode?.photoFor;
+  $('scanner').classList.toggle('photos-only',po);
+  $('scanModeBar').hidden=single;
+  document.querySelectorAll('[data-scanmode]').forEach(b=>b.classList.toggle('on',(b.dataset.scanmode==='photos')===po));
+  const {owned,withPhoto}=photoProgress();
+  $('scanModeNote').textContent=po?`${withPhoto} von ${owned} Karten haben ein Foto · Anzahl bleibt gleich`:'Jeder Scan zählt die Karte +1';
+  $('optPhotoRow').hidden=po;
+  $('optAutoText').textContent=po?'Sicher erkannte Karten sofort speichern (nur Karten aus deiner Sammlung)':'Sicher erkannte, neue Karten sofort hinzufügen';
+  renderScanResults();
+}
+document.querySelectorAll('[data-scanmode]').forEach(b=>b.onclick=()=>{
+  scan.mode={...(scan.mode||{}),photosOnly:b.dataset.scanmode==='photos'};
+  applyScanMode();
+});
+$('openPhotoScan').onclick=()=>openScanner({photosOnly:true});
+
 async function openScanner(mode={}){
   scan.mode=mode;scan.results=[];scan.paused=false;scan.lastTop=null;scan.ignoreId=null;scan.lastCanvas=null;scan.sharpRef=0;scan.prevDet=null;scan.lastText='';resetVotes();
   $('scanDiag').hidden=true;$('scanSharp').hidden=true;$('scanShoot').hidden=!!mode.photoFor;
@@ -1674,7 +1713,7 @@ async function openScanner(mode={}){
   $('optPhoto').checked=!!prefs.photo;$('optAuto').checked=!!prefs.auto;$('optAutoShoot').checked=!!prefs.autoShoot;
   $('scanDetect').hidden=true;$('scanShoot').hidden=false;
   $('scanInput').value='';$('scanInputClear').hidden=true;
-  renderScanResults();
+  applyScanMode();
   layoutFrame();
   setStatus('Kamera wird gestartet …',true);
   if(!photoMode)loadOCR().catch(()=>{});   // Texterkennung parallel vorladen
@@ -1760,7 +1799,7 @@ async function capture(){
     const top=res[0];
     showResults(res.map((r,i)=>({id:r.id,sure:i===0&&!!r.sure,reason:r.reason})));
     const c=CARD.get(top.id);
-    if(top.sure&&prefs.auto&&!count(top.id)){await commitScan(top.id,true);return}
+    if(top.sure&&prefs.auto&&(photosOnly()?count(top.id)>0:!count(top.id))){await commitScan(top.id,true);return}
     setStatus(top.sure?`Erkannt: #${c.id} ${displayName(c)}`:'Bitte die richtige Karte antippen');
   }catch(err){
     console.warn(err);
@@ -1803,11 +1842,21 @@ function renderScanResults(){
   if(!list.length){box.innerHTML=q?'<div class="scan-msg">Keine passende Karte.</div>':'';return}
   box.innerHTML=list.map((r,i)=>{
     const c=CARD.get(r.id),n=count(c.id);
-    const tag=n?`<span class="tag warn">Schon ${n}× vorhanden – Hinzufügen zählt ein weiteres</span>`:(r.reason?`<span class="tag">${r.sure?'Sicher erkannt':'Vorschlag'} · ${esc(r.reason)}</span>`:'');
+    const how=r.reason?`${r.sure?'Sicher erkannt':'Vorschlag'} · ${esc(r.reason)}`:'';
+    let tag,label;
+    if(photosOnly()){
+      const st=!n?'<span class="tag warn">Nicht in deiner Sammlung · Anzahl bleibt 0</span>'
+        :photoUrls.has(c.id)?`<span class="tag">${how?how+' · ':''}Hat schon ein Foto – wird ersetzt</span>`
+        :`<span class="tag">${how?how+' · ':''}In Sammlung (${n}×) · noch ohne Foto</span>`;
+      tag=st;label='Foto speichern';
+    }else{
+      tag=n?`<span class="tag warn">Schon ${n}× vorhanden – Hinzufügen zählt ein weiteres</span>`:(how?`<span class="tag">${how}</span>`:'');
+      label=n?'+1':'Hinzufügen';
+    }
     return `<div class="row ${n?'owned':''} ${i===0&&(r.sure||list.length===1)?'best':''}">
       <div class="row-main"><span class="row-num num-font" style="--cls:${clsColor(c.k)}">${esc(c.id)}</span>
       <span class="row-text">${tag}<b>${esc(displayName(c))}</b><small>${esc(c.t)} · ${esc(c.k)}</small></span></div>
-      <button class="btn ${i===0?'primary':''}" type="button" data-scanadd="${esc(c.id)}">${n?'+1':'Hinzufügen'}</button></div>`;
+      <button class="btn ${i===0?'primary':''}" type="button" data-scanadd="${esc(c.id)}">${label}</button></div>`;
   }).join('');
 }
 $('scanResults').addEventListener('pointerdown',e=>{if(e.target.closest('[data-scanadd]')&&document.activeElement===$('scanInput'))e.preventDefault()});
@@ -1815,6 +1864,7 @@ $('scanResults').addEventListener('click',e=>{const b=e.target.closest('[data-sc
 
 async function commitScan(id,auto=false){
   const c=CARD.get(id);if(!c)return;
+  if(photosOnly())return commitPhotoOnly(c,auto);
   const fromManual=!!$('scanInput').value.trim();
   addCard(id);
   if(prefs.photo&&scan.lastCanvas&&!fromManual){
@@ -1826,6 +1876,22 @@ async function commitScan(id,auto=false){
   setStatus(`${auto?'Automatisch ':''}hinzugefügt: #${c.id} ${displayName(c)}`);
   if(scan.stream)resumeScan();else{scan.results=[];renderScanResults()}
   if(scan.stream)setStatus(`✓ #${c.id} ${displayName(c)} – nächste Karte`,true);
+}
+
+/** Fotomodus: nur das gescannte Bild speichern – die Anzahl bleibt unverändert */
+async function commitPhotoOnly(c,auto=false){
+  if(!scan.lastCanvas){toast('Erst die Karte scannen (Auslöser), dann die Nummer wählen');return}
+  try{
+    const blob=await new Promise(r=>scan.lastCanvas.toBlob(r,'image/jpeg',.85));
+    if(!blob)throw Error('kein Bild');
+    await savePhoto(c.id,blob);
+    toast(count(c.id)?`Foto für #${c.id} ${displayName(c)} gespeichert`:`Foto für #${c.id} gespeichert – erscheint, sobald die Karte in der Sammlung ist`);
+  }catch(err){toast('Foto konnte nicht gespeichert werden');return}
+  $('scanInput').value='';$('scanInputClear').hidden=true;
+  scan.armed=false;scan.lastCanvas=null;
+  if(scan.stream)resumeScan();else{scan.results=[];renderScanResults()}
+  applyScanMode();
+  setStatus(`${auto?'Automatisch ':''}✓ Foto #${c.id} gespeichert – nächste Karte`,!!scan.stream);
 }
 
 $('scanInput').addEventListener('input',()=>{$('scanInputClear').hidden=!$('scanInput').value;renderScanResults()});

@@ -1,1 +1,1 @@
-{"version":28,"release":"2026-11-21","changes":"Scanner: Karte wird am Tisch erkannt (grüner Rahmen), Auslöser-Knopf, optional Automatik nur bei ruhig liegender Karte, Kartennummer gezielt gelesen und in zwei Bildern bestätigt"}
+{"version":29,"release":"2026-11-21","changes":"Neuer Scanmodus „Nur Fotos“: Kartenbilder für vorhandene Karten speichern, ohne die Anzahl zu erhöhen"}
