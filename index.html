@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0e131d">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Match Attax 26/27 · V24</title>
+<title>Match Attax 26/27 · V26</title>
 <style>
 /* =========================================================
    V24 – komplett neu aufgebautes, funktionales Layout
@@ -38,9 +38,36 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* ---------- App-Leiste (fixiert) ---------- */
+/* ---------- Kopfbereich mit Statistik ---------- */
+.hero{padding:calc(var(--safe-t) + 18px) 16px 16px;background:radial-gradient(120% 90% at 100% 0,rgba(142,235,199,.10),transparent 60%),linear-gradient(180deg,#151d2c,var(--bg));border-bottom:1px solid var(--line)}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
+.hero h1{margin:4px 0 0;font-size:28px;line-height:1.05;letter-spacing:-.6px;font-weight:850}
+.hero h1 span{display:block;color:var(--muted);font-weight:600;font-size:13px;letter-spacing:0;margin-top:4px}
+.ver{flex:none;font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:4px 9px}
+.hero-main{display:flex;align-items:center;gap:14px;margin-top:16px}
+.ring{position:relative;width:96px;height:96px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .ring-bg{stroke:var(--surface-3)}
+.ring .ring-fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-txt b{font-size:21px;letter-spacing:-.5px}
+.ring-txt span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.hero-stats{flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hero-stats button{min-width:0;padding:10px 8px;border-radius:var(--radius);border:1px solid var(--line);background:rgba(255,255,255,.03);text-align:left}
+.hero-stats b{display:block;font-size:21px;line-height:1.1}
+.hero-stats span{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-stats .s-own b{color:var(--accent)}
+.hero-stats .s-dup b{color:var(--warn)}
+.hero-sub{margin-top:12px;font-size:12px;color:var(--muted)}
+.hero-sub b{color:var(--text);font-weight:650}
+@media(max-width:360px){.ring{width:80px;height:80px}.ring-txt b{font-size:17px}.hero-stats b{font-size:18px}}
+
+/* ---------- Such- und Filterleiste (fixiert) ---------- */
 .appbar{position:sticky;top:0;z-index:30;background:rgba(14,19,29,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);padding:calc(var(--safe-t) + 10px) 14px 10px}
+  border-bottom:1px solid var(--line);padding:calc(var(--safe-t) + 4px) 14px 10px}
+.appbar .search-row{margin-top:6px}
 .appbar-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .title{font-weight:800;font-size:17px;letter-spacing:-.2px;white-space:nowrap}
 .title small{font-weight:600;color:var(--muted);font-size:13px;margin-left:4px}
@@ -94,13 +121,16 @@ h2.page-title{font-size:22px;margin:16px 2px 4px;letter-spacing:-.3px}
 .ph-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
 .ph-num{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1}
 .tile:not(.owned) .ph-num{color:var(--muted)}
-.ph-mid{flex:1;display:grid;place-items:center}
+.ph-mid{position:relative;flex:1;min-height:0;margin:8px -2px 8px;border-radius:7px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));overflow:hidden}
+.ph-mid .sil{position:absolute;left:50%;bottom:0;height:90%;transform:translateX(-50%);fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.32);stroke-width:1.2;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.tile.owned .ph-mid .sil{fill:rgba(142,235,199,.15);stroke:rgba(142,235,199,.6);stroke-dasharray:none}
+.ph-mid .crest{position:absolute;top:6px;right:6px}
 .crest{width:38px;height:38px;display:grid;place-items:center;border-radius:8px;background:rgba(255,255,255,.05);font-size:10px;font-weight:800;color:var(--muted);overflow:hidden}
 .crest img{max-width:32px;max-height:32px;object-fit:contain}
-.ph-mid .crest{width:56px;height:56px;opacity:.9}
-.ph-mid .crest img{max-width:48px;max-height:48px}
-.tile:not(.owned) .ph-mid .crest{opacity:.45;filter:grayscale(.6)}
-.ph-name{font-size:14px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.ph-mid .crest{width:40px;height:40px;background:rgba(10,14,22,.55)}
+.ph-mid .crest img{max-width:32px;max-height:32px}
+.tile:not(.owned) .ph-mid .crest{opacity:.75}
+.ph-name{flex:none;font-size:14px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .tile:not(.owned) .ph-name{color:#c3cbd9}
 .ph-meta{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ph-cls{display:inline-block;align-self:flex-start;margin-top:6px;font-size:10px;font-weight:700;letter-spacing:.2px;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.07);color:var(--cls,#aab4c6);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -161,6 +191,24 @@ select,.field{height:var(--tap);border-radius:var(--radius);border:1px solid var
 .nchips{display:flex;flex-wrap:wrap;gap:6px}
 .nchips button{min-width:46px;height:36px;padding:0 8px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);font-weight:700;font-size:13px}
 .done-note{font-size:13px;color:var(--accent)}
+
+/* ---------- Statistik ---------- */
+.stat-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.stat-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 10px;width:100%;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);text-align:left}
+.stat-row .crest{width:34px;height:34px;grid-row:span 2}
+.stat-row .crest img{max-width:28px;max-height:28px}
+.stat-row .dot{width:12px;height:12px;border-radius:4px;background:var(--cls);grid-row:span 2;margin:0 11px}
+.stat-row strong{font-size:15px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-row .val{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.stat-row .val b{color:var(--text)}
+.stat-row .pbar{grid-column:2 / 4;margin:2px 0 0}
+.stat-row.done{border-color:rgba(142,235,199,.45)}
+.stat-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:6px 0 12px;flex-wrap:wrap}
+.seg.text button{width:auto;padding:0 14px;font-size:13px;font-weight:650}
+.stat-total{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.stat-total div{padding:12px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface)}
+.stat-total b{display:block;font-size:20px}
+.stat-total span{font-size:12px;color:var(--muted)}
 
 /* ---------- Mehr ---------- */
 .menu{display:flex;flex-direction:column;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);overflow:hidden;margin-bottom:16px}
@@ -253,12 +301,26 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
 </head>
 <body>
 
-<header class="appbar" id="appbar">
-  <div class="appbar-top">
-    <div class="title">Match Attax <small>26/27 · V24</small></div>
-    <div class="progress-text num-font" id="progressText"><b>0</b> / 0 · 0 %</div>
+<header class="hero" id="hero">
+  <div class="hero-top">
+    <div><div class="eyebrow">Mein Kartenalbum · 2026/27</div><h1>Match Attax<span>UEFA Club Competitions · Sammlungs-Tracker</span></h1></div>
+    <span class="ver">V26</span>
   </div>
-  <div class="pbar" role="progressbar" aria-label="Sammelfortschritt" id="pbar"><div id="pbarFill"></div></div>
+  <div class="hero-main">
+    <div class="ring" role="img" id="ring" aria-label="Sammelfortschritt">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fg" id="ringFg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"/></svg>
+      <div class="ring-txt"><b class="num-font" id="pct">0 %</b><span>komplett</span></div>
+    </div>
+    <div class="hero-stats">
+      <button type="button" class="s-own" data-goto="owned"><b class="num-font" id="sOwned">0</b><span>Gesammelt</span></button>
+      <button type="button" data-goto="missing"><b class="num-font" id="sMissing">0</b><span>Fehlend</span></button>
+      <button type="button" class="s-dup" data-goto="dupes"><b class="num-font" id="sDupes">0</b><span>Tauschbar</span></button>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub"></div>
+</header>
+
+<header class="appbar" id="appbar">
 
   <div id="collectionTools">
     <div class="search-row">
@@ -318,12 +380,31 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   <div class="list" id="dList"></div>
 </main>
 
+<!-- Statistik -->
+<main id="page-stats" hidden>
+  <h2 class="page-title">Statistik</h2>
+  <p class="page-sub">Karten je Serie und je Verein. Antippen zeigt die passenden Karten in der Sammlung.</p>
+  <div class="stat-total" id="statTotal"></div>
+  <div class="stat-tools">
+    <div class="seg text" role="group" aria-label="Gruppierung">
+      <button type="button" data-group="type" class="on">Serien</button>
+      <button type="button" data-group="team">Vereine</button>
+    </div>
+    <select id="statSort" aria-label="Sortierung" style="width:auto;min-width:160px"><option value="default">Standardreihenfolge</option><option value="pct">Nach Fortschritt</option><option value="name">Alphabetisch</option></select>
+  </div>
+  <div class="stat-list" id="statList"></div>
+</main>
+
 <!-- Mehr -->
 <main id="page-more" hidden>
   <h2 class="page-title">Mehr</h2>
   <div class="menu-label">Erfassen</div>
   <div class="menu">
     <button type="button" id="openBatch"><span>Schnellerfassung<small>Viele Nummern oder Bereiche wie 120-135 auf einmal</small></span><span class="chev">›</span></button>
+  </div>
+  <div class="menu-label">Listen</div>
+  <div class="menu">
+    <button type="button" data-page-link="dupes"><span>Tauschliste<small id="moreDupes">Doppelte Karten zum Tauschen</small></span><span class="chev">›</span></button>
   </div>
   <div class="menu-label">Daten</div>
   <div class="menu">
@@ -332,7 +413,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   </div>
   <div class="menu-label">App</div>
   <div class="menu">
-    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 24</small></span><span class="chev">›</span></button>
+    <button type="button" id="checkUpdate"><span>Auf Updates prüfen<small>Installiert: Version 26</small></span><span class="chev">›</span></button>
     <button type="button" id="openHelp"><span>Hilfe</span><span class="chev">›</span></button>
     <button type="button" id="reset" class="danger"><span style="color:var(--danger)">Sammlung zurücksetzen</span><span class="chev">›</span></button>
   </div>
@@ -343,7 +424,7 @@ textarea.field{height:auto;min-height:120px;padding:12px;font-family:ui-monospac
   <button type="button" data-page="collection" class="on"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>Sammlung</button>
   <button type="button" data-page="missing"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Fehlliste</button>
   <button type="button" class="scan-nav" id="scanNav" aria-label="Karte scannen"><span class="dot"><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Scannen</button>
-  <button type="button" data-page="dupes"><svg class="i" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Tauschen</button>
+  <button type="button" data-page="stats"><svg class="i" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Statistik</button>
   <button type="button" data-page="more"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Mehr</button>
 </nav>
 
@@ -430,7 +511,7 @@ const cards=[{"id":"1","n":"Luka Modrić","t":"Sonderserie","k":"Infinity"},{"id
    Die Schlüssel sind identisch mit V23 – vorhandene Daten
    werden unverändert weiterverwendet.
    ========================================================= */
-const APP_VERSION=24;
+const APP_VERSION=26;
 const STORAGE='match-attax-26-27-v2';
 const LEGACY_STORAGE='match-attax-26-27-v1';
 const NAMES_STORAGE='match-attax-26-27-custom-names-v1';
@@ -513,6 +594,7 @@ const CLASS_COLOR={
   '20th Anniversary':'#d9bd72','Taktikkarte':'#7fd39a'
 };
 const clsColor=k=>CLASS_COLOR[k]||'#c597ff';
+const TEAMS=[...new Set(cards.map(c=>c.t))].sort((a,b)=>a.localeCompare(b,'de'));
 const CLASS_ORDER=(()=>{const first=['Basis','Leader','Attax Debutant','Man of the Match','Power Play','Goaliaths','Fortress','20th Anniversary'];
   const rest=[...new Set(cards.map(c=>c.k))].filter(k=>!first.includes(k));return [...first,...rest]})();
 
@@ -530,25 +612,57 @@ const crestAbbr=t=>t.replace(/^(FC|AC|RB|PSV)\s+/i,'').split(/\s+/).map(w=>w[0]|
 function crestHTML(team){
   if(!has(CLUB_PAGES,team))return '';
   const src=crests[team];
-  return `<span class="crest" aria-hidden="true">${src?`<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${esc(crestAbbr(team))}'))">`:esc(crestAbbr(team))}</span>`;
+  return `<span class="crest" aria-hidden="true" data-crest="${esc(team)}">${src?`<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="crestFailed(this)">`:esc(crestAbbr(team))}</span>`;
 }
+/** Bild nicht ladbar: Kürzel zeigen und Eintrag verwerfen, damit beim nächsten Start neu gesucht wird */
+function crestFailed(img){
+  const box=img.closest('[data-crest]');const team=box?.dataset.crest;
+  if(team&&crests[team]===img.getAttribute('src')){delete crests[team];try{localStorage.setItem(CLUB_CACHE_KEY,JSON.stringify(crests))}catch(e){}}
+  img.replaceWith(document.createTextNode(crestAbbr(team||'')));
+}
+/**
+ * Vereinswappen laden. V23 fragte die Artikelbilder ohne „pilicense=any“ ab –
+ * die Wikipedia-API liefert dann nur frei lizenzierte Bilder, die Wappen der
+ * meisten großen Vereine fehlten deshalb. Jetzt: 1. Artikelbild der englischen
+ * Wikipedia (inkl. Weiterleitungen, jede Lizenz), 2. Wikidata-Logo als Ersatz.
+ */
+let crestsLoading=false;
 async function loadCrests(){
+  if(crestsLoading||!navigator.onLine)return;
   const todo=Object.entries(CLUB_PAGES).filter(([t])=>!crests[t]);
-  if(!todo.length||!navigator.onLine)return;
-  let changed=false;
+  if(!todo.length)return;
+  crestsLoading=true;let changed=false;
   try{
-    const url='https://www.wikidata.org/w/api.php?action=wbgetentities&sites=enwiki&titles='+encodeURIComponent(todo.map(x=>x[1]).join('|'))+'&props=claims%7Csitelinks&format=json&origin=*';
-    const data=await (await fetch(url)).json();
-    const byTitle={};
-    for(const e of Object.values(data.entities||{})){const t=e.sitelinks?.enwiki?.title;if(t)byTitle[t]=e}
+    const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pilicense=any&pithumbsize=96&titles='+encodeURIComponent(todo.map(x=>x[1]).join('|'));
+    const q=(await (await fetch(url)).json()).query||{};
+    const alias=new Map();
+    for(const m of [...(q.normalized||[]),...(q.redirects||[])])alias.set(m.from,m.to);
+    const resolve=title=>{let s=title,i=0;while(alias.has(s)&&i++<4)s=alias.get(s);return s};
+    const byTitle=new Map(Object.values(q.pages||{}).map(pg=>[pg.title,pg]));
     for(const [team,title] of todo){
-      const claim=(byTitle[title]?.claims?.P154||byTitle[title]?.claims?.P94||[]).find(x=>typeof x?.mainsnak?.datavalue?.value==='string');
-      const file=claim?.mainsnak?.datavalue?.value;
-      if(file&&!/\.(pdf|tiff?)$/i.test(file)){crests[team]='https://commons.wikimedia.org/wiki/Special:Redirect/file/'+encodeURIComponent(file)+'?width=110';changed=true}
+      const src=byTitle.get(resolve(title))?.thumbnail?.source;
+      if(src&&/^https:\/\//.test(src)){crests[team]=src;changed=true}
     }
-  }catch(e){console.warn('Wappen nicht geladen',e)}
+  }catch(e){console.warn('Wikipedia-Wappen nicht erreichbar',e)}
+  const rest=todo.filter(([t])=>!crests[t]);
+  if(rest.length){
+    try{
+      const url='https://www.wikidata.org/w/api.php?action=wbgetentities&sites=enwiki&redirects=yes&props=claims%7Csitelinks&sitefilter=enwiki&format=json&origin=*&titles='+encodeURIComponent(rest.map(x=>x[1]).join('|'));
+      const data=await (await fetch(url)).json();
+      const ents=Object.values(data.entities||{});
+      for(const [team,title] of rest){
+        const e=ents.find(x=>x.sitelinks?.enwiki?.title===title)||ents.find(x=>(x.sitelinks?.enwiki?.title||'').toLowerCase()===title.toLowerCase());
+        const claims=[...(e?.claims?.P154||[]),...(e?.claims?.P94||[])].filter(c=>typeof c?.mainsnak?.datavalue?.value==='string');
+        claims.sort((a,b)=>(b.rank==='preferred')-(a.rank==='preferred'));
+        const file=claims[0]?.mainsnak?.datavalue?.value;
+        if(file&&!/\.(pdf|tiff?)$/i.test(file)){crests[team]='https://commons.wikimedia.org/wiki/Special:Redirect/file/'+encodeURIComponent(file)+'?width=96';changed=true}
+      }
+    }catch(e){console.warn('Wikidata nicht erreichbar',e)}
+  }
+  crestsLoading=false;
   if(changed){try{localStorage.setItem(CLUB_CACHE_KEY,JSON.stringify(crests))}catch(e){}invalidateAll();renderAll()}
 }
+window.addEventListener('online',()=>loadCrests());
 
 /* ---------- Fotos (IndexedDB, unverändert zu V16–V23) ---------- */
 const photoUrls=new Map();
@@ -640,6 +754,7 @@ const ICON={
   check:'<svg class="i" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
   trash:'<svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>'
 };
+const SILHOUETTE='<svg class="sil" viewBox="0 0 100 110" aria-hidden="true"><circle cx="50" cy="31" r="19"/><path d="M6 110c0-30 19-52 44-52s44 22 44 52z"/></svg>';
 function ctrlHTML(c,compact){
   const n=count(c.id),idA=esc(c.id);
   if(!n)return compact
@@ -652,7 +767,7 @@ function faceHTML(c){
   if(photo)return `<img class="photo" src="${esc(photo)}" alt="Foto der Karte ${esc(c.id)}" loading="lazy">${n?`<span class="badge-own">${ICON.check}</span>`:''}${n>1?`<span class="badge-cnt num-font">${n}×</span>`:''}`;
   return `<span class="ph" style="--cls:${clsColor(c.k)}">
     <span class="ph-top"><span class="ph-num num-font">${esc(c.id)}</span>${n?`<span class="badge-own">${ICON.check}</span>`:''}</span>
-    <span class="ph-mid">${crestHTML(c.t)}</span>
+    <span class="ph-mid">${SILHOUETTE}${crestHTML(c.t)}</span>
     <span class="ph-name">${esc(displayName(c))}</span>
     <span class="ph-meta">${esc(c.t)}</span>
     <span class="ph-cls">${esc(c.k)}</span>
@@ -736,6 +851,7 @@ function renderCollection(){
     wrap.append(e);
   }
   host.replaceChildren(wrap);
+  host.style.minHeight=q?'100vh':'';   // genug Platz, damit die Suchleiste oben stehen kann
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===prefs.view));
   updateHint();
 }
@@ -754,13 +870,19 @@ function updateHint(){
 }
 function updateStats(){
   const total=cards.length;
-  let owned=0,dupes=0;
-  for(const c of cards){const n=count(c.id);if(n){owned++;if(n>1)dupes++}}
-  const pct=total?Math.floor(owned/total*1000)/10:0;
-  $('progressText').innerHTML=`<b>${owned}</b> / ${total} · ${pct.toLocaleString('de-DE')} %`;
-  $('pbarFill').style.width=pct+'%';
-  $('pbar').setAttribute('aria-valuenow',String(Math.round(pct)));
-  $('cAll').textContent=total;$('cOwned').textContent=owned;$('cMissing').textContent=total-owned;$('cDupes').textContent=dupes;
+  let owned=0,dupeTypes=0,spare=0;
+  for(const c of cards){const n=count(c.id);if(n){owned++;if(n>1){dupeTypes++;spare+=n-1}}}
+  const pct=total?owned/total*100:0;
+  const pctTxt=(pct>0&&pct<10?pct.toFixed(1):Math.floor(pct)).toString().replace('.',',')+' %';
+  $('pct').textContent=pctTxt;
+  $('ringFg').setAttribute('stroke-dashoffset',String(213.6*(1-pct/100)));
+  $('ring').setAttribute('aria-label',`Sammelfortschritt ${pctTxt}`);
+  $('sOwned').textContent=owned;$('sMissing').textContent=total-owned;$('sDupes').textContent=spare;
+  const done=CLASS_ORDER.filter(k=>cards.every(c=>c.k!==k||count(c.id))).length;
+  const clubsDone=TEAMS.filter(tm=>has(CLUB_PAGES,tm)&&cards.every(c=>c.t!==tm||count(c.id))).length;
+  $('heroSub').innerHTML=`<b>${owned}</b> von ${total} Karten · <b>${done}</b> von ${CLASS_ORDER.length} Serien komplett · <b>${clubsDone}</b> Vereine komplett`;
+  $('cAll').textContent=total;$('cOwned').textContent=owned;$('cMissing').textContent=total-owned;$('cDupes').textContent=dupeTypes;
+  if($('moreDupes'))$('moreDupes').textContent=spare?`${spare} Karten zum Tauschen (${dupeTypes} verschiedene)`:'Noch keine doppelten Karten';
 }
 
 /* ---------- Ereignisse Sammlung ---------- */
@@ -788,7 +910,7 @@ $('q').addEventListener('input',()=>{
   clearTimeout(qTimer);
   qTimer=setTimeout(()=>{
     const was=state.q;state.q=$('q').value;renderCollection();
-    if(state.q.trim()&&!was.trim())window.scrollTo({top:0});
+    if(state.q.trim()&&!was.trim())scrollToBar();
   },60);
 });
 $('q').addEventListener('keydown',e=>{
@@ -800,19 +922,19 @@ $('q').addEventListener('keydown',e=>{
   if(t){addCard(t.id);setQuery('')}
   else if(state.q.trim()){renderCollection();$('q').blur()}
 });
-$('q').addEventListener('focus',()=>{if(window.scrollY>0&&state.page==='collection')window.scrollTo({top:0})});
+function scrollToBar(){const y=$('hero').offsetHeight;if(window.scrollY<y-1||window.scrollY>y+1)window.scrollTo({top:y})}
+$('q').addEventListener('focus',()=>{if(state.page==='collection')scrollToBar()});
 $('qClear').onclick=()=>{setQuery('');$('q').focus()};
 
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{
   state.filter=b.dataset.filter;
   document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x===b));
-  renderCollection();window.scrollTo({top:0});
+  renderCollection();if(window.scrollY>$('hero').offsetHeight)scrollToBar();
 });
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{prefs.view=b.dataset.view;savePrefs();renderCollection()});
 
 /* ---------- Filter-Sheet ---------- */
 function fillSelect(sel,values){for(const v of values){const o=document.createElement('option');o.value=v;o.textContent=v;sel.append(o)}}
-const TEAMS=[...new Set(cards.map(c=>c.t))].sort((a,b)=>a.localeCompare(b,'de'));
 fillSelect($('fTeam'),TEAMS);fillSelect($('fType'),CLASS_ORDER);fillSelect($('mTeam'),TEAMS);
 $('fSort').value=prefs.sort;
 $('openFilter').onclick=()=>{$('fTeam').value=state.team;$('fType').value=state.type;$('fSort').value=prefs.sort;$('filterDlg').showModal()};
@@ -928,6 +1050,7 @@ function renderDupes(){
 function refreshPages(){
   if(state.page==='missing')renderMissing();
   if(state.page==='dupes')renderDupes();
+  if(state.page==='stats')renderStats();
   if(state.page==='collection'&&state.filter!=='all'&&!state.q)renderCollection();
   else if(state.page==='collection'&&state.q)updateHint();
 }
@@ -950,15 +1073,52 @@ $('copyDupes').onclick=()=>copyText(cards.filter(c=>count(c.id)>1).map(c=>`#${c.
    ========================================================= */
 function navigate(page){
   state.page=page;
-  for(const p of ['collection','missing','dupes','more'])$('page-'+p).hidden=p!==page;
-  $('collectionTools').hidden=page!=='collection';
+  for(const p of ['collection','missing','dupes','stats','more'])$('page-'+p).hidden=p!==page;
+  $('appbar').hidden=page!=='collection';
   document.querySelectorAll('.nav [data-page]').forEach(b=>b.classList.toggle('on',b.dataset.page===page));
   if(page==='collection')renderCollection();
   if(page==='missing')renderMissing();
   if(page==='dupes')renderDupes();
   if(page==='more')renderMore();
+  if(page==='stats')renderStats();
   window.scrollTo({top:0});
 }
+document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{
+  const g=b.dataset.goto;
+  if(g==='dupes'){navigate('dupes');return}
+  state.filter=g;state.team='';state.type='';
+  document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x.dataset.filter===g));
+  if(state.page!=='collection')navigate('collection');
+  setQuery('');applyFilters();scrollToBar();
+});
+document.querySelectorAll('[data-page-link]').forEach(b=>b.onclick=()=>navigate(b.dataset.pageLink));
+
+/* ---------- Statistik nach Serie / Verein ---------- */
+let statGroup='type';
+function renderStats(){
+  const key=statGroup==='type'?'k':'t';
+  const order=statGroup==='type'?CLASS_ORDER:[...TEAMS.filter(x=>has(CLUB_PAGES,x)),...TEAMS.filter(x=>!has(CLUB_PAGES,x))];
+  let rows=order.map(name=>{const all=cards.filter(c=>c[key]===name);const own=all.filter(c=>count(c.id)).length;return {name,all:all.length,own,pct:all.length?own/all.length:0}});
+  const s=$('statSort').value;
+  if(s==='pct')rows.sort((a,b)=>b.pct-a.pct||b.own-a.own||a.name.localeCompare(b.name,'de'));
+  if(s==='name')rows.sort((a,b)=>a.name.localeCompare(b.name,'de'));
+  const base=statGroup==='type'?rows:rows.filter(r=>has(CLUB_PAGES,r.name));
+  const complete=base.filter(r=>r.own===r.all).length,started=base.filter(r=>r.own>0).length;
+  const label=statGroup==='type'?'Serien':'Vereine';
+  $('statTotal').innerHTML=`<div><b class="num-font">${complete} / ${base.length}</b><span>${label} komplett</span></div><div><b class="num-font">${started} / ${base.length}</b><span>${label} begonnen</span></div>`;
+  $('statList').innerHTML=rows.map(r=>`<button type="button" class="stat-row ${r.own===r.all?'done':''}" data-stat="${esc(r.name)}" style="--cls:${statGroup==='type'?clsColor(r.name):'#6c7d9a'}">
+      ${statGroup==='team'?(has(CLUB_PAGES,r.name)?crestHTML(r.name):'<span class="dot"></span>'):'<span class="dot"></span>'}
+      <strong>${esc(r.name)}</strong><span class="val num-font"><b>${r.own}</b> / ${r.all} · ${Math.round(r.pct*100)} %</span>
+      <span class="pbar"><div style="width:${r.pct*100}%"></div></span></button>`).join('');
+}
+document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{statGroup=b.dataset.group;document.querySelectorAll('[data-group]').forEach(x=>x.classList.toggle('on',x===b));renderStats()});
+$('statSort').onchange=renderStats;
+$('statList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-stat]');if(!b)return;
+  state.team=statGroup==='team'?b.dataset.stat:'';state.type=statGroup==='type'?b.dataset.stat:'';
+  state.filter='all';document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x.dataset.filter==='all'));
+  navigate('collection');setQuery('');applyFilters();scrollToBar();
+});
 document.querySelectorAll('.nav [data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
 function renderAll(){updateStats();if(state.page==='collection')renderCollection();else refreshPages()}
 
@@ -1054,6 +1214,12 @@ const scan={stream:null,track:null,running:false,paused:false,busy:false,mode:nu
 
 /* ---------- OCR laden ---------- */
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.async=true;s.onload=res;s.onerror=()=>rej(Error('Skript nicht ladbar'));document.head.append(s)})}
+const OCR_RECYCLE=120;   // nach so vielen Erkennungen Worker neu starten (Speicher)
+let ocrUses=0;
+async function resetOCR(){
+  const w=scan.ocr;scan.ocr=null;scan.ocrLoading=null;ocrUses=0;
+  try{await Promise.race([w?.terminate(),new Promise(r=>setTimeout(r,1500))])}catch(e){}
+}
 function loadOCR(){
   if(scan.ocr)return Promise.resolve(scan.ocr);
   if(!scan.ocrLoading)scan.ocrLoading=(async()=>{
@@ -1074,6 +1240,21 @@ function cropRegion(src,[u0,v0,u1,v1],targetH){
   ctx.imageSmoothingQuality='high';
   ctx.drawImage(src,sx,sy,sw,sh,pad,pad,w,h);
   return {cv,ctx,pad,w,h};
+}
+/**
+ * Schwarze Flächen entfernen, die den Bildrand berühren (Kartenkante, Tisch,
+ * Rahmenlinien). Sie stören die Layoutanalyse der Texterkennung; Schrift
+ * liegt innerhalb des Ausschnitts und bleibt erhalten.
+ */
+function clearBorderBlobs(g,w,h){
+  const stack=[];
+  const push=(x,y)=>{const i=y*w+x;if(g[i]===0){g[i]=255;stack.push(i)}};
+  for(let x=0;x<w;x++){push(x,0);push(x,h-1)}
+  for(let y=0;y<h;y++){push(0,y);push(w-1,y)}
+  while(stack.length){
+    const i=stack.pop(),x=i%w,y=(i-x)/w;
+    if(x>0)push(x-1,y);if(x<w-1)push(x+1,y);if(y>0)push(x,y-1);if(y<h-1)push(x,y+1);
+  }
 }
 /**
  * Bild für die Texterkennung aufbereiten.
@@ -1102,6 +1283,7 @@ function enhance({cv,ctx,pad,w,h},binary,mode='light'){
       for(let x=0;x<w;x++){const x0=Math.max(0,x-S),x1=Math.min(w-1,x+S),n=(x1-x0+1)*(y1-y0+1);
         const sum=I[(y1+1)*(w+1)+x1+1]-I[y0*(w+1)+x1+1]-I[(y1+1)*(w+1)+x0]+I[y0*(w+1)+x0];
         g[y*w+x]=g[y*w+x]*n<sum*(1-T)?0:255}}
+    clearBorderBlobs(g,w,h);
     for(let i=0,j=0;j<len;i+=4,j++){d[i]=d[i+1]=d[i+2]=g[j];d[i+3]=255}
     ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.putImageData(img,pad,pad);
     return cv;
@@ -1113,7 +1295,8 @@ function enhance({cv,ctx,pad,w,h},binary,mode='light'){
     let sB=0,wB=0,best=0;
     for(let v=0;v<256;v++){wB+=hs[v];if(!wB)continue;const wF=len-wB;if(!wF)break;sB+=v*hs[v];const mB=sB/wB,mF=(total-sB)/wF,between=wB*wF*(mB-mF)**2;if(between>best){best=between;thr=v}}
   }
-  for(let i=0,j=0;j<len;i+=4,j++){const v=binary?(g[j]>thr?255:0):g[j];d[i]=d[i+1]=d[i+2]=v;d[i+3]=255}
+  if(binary){for(let j=0;j<len;j++)g[j]=g[j]>thr?255:0;clearBorderBlobs(g,w,h)}
+  for(let i=0,j=0;j<len;i+=4,j++){d[i]=d[i+1]=d[i+2]=g[j];d[i+3]=255}
   ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
   ctx.putImageData(img,pad,pad);
   return cv;
@@ -1161,13 +1344,20 @@ function namesFromText(text){
     let s=0;
     if(flat.includes(name))s=1;
     else{
-      const parts=name.split(' ').filter(w=>w.length>=4);
-      let hit=0;
+      // Namensteile nach Länge gewichten (Nachname zählt mehr); abgeschnittene Wörter am Rand tolerieren
+      const parts=name.split(' ').filter(w=>w.length>=3);
+      let hit=0,total=0;
       for(const p of parts){
-        if(words.has(p)){hit+=1;continue}
-        if(p.length>=6){for(const w of words){if(lev(p,w)<=1){hit+=.7;break}}}
+        total+=p.length;
+        if(words.has(p)){hit+=p.length;continue}
+        let best=0;
+        for(const w of words){
+          if(w.length>=5&&p.length>=6&&(p.startsWith(w)||p.endsWith(w))&&w.length>=p.length-2){best=Math.max(best,.85);continue}
+          if(p.length>=6){const dd=lev(p,w);if(dd<=1)best=Math.max(best,.8);else if(dd===2&&p.length>=9)best=Math.max(best,.6)}
+        }
+        hit+=best*p.length;
       }
-      if(parts.length)s=Math.min(.9,hit/parts.length*.85);
+      if(total)s=Math.min(.9,hit/total);
     }
     if(s>=.4)scores.set(c.id,s);
   }
@@ -1175,10 +1365,22 @@ function namesFromText(text){
 }
 
 /** Ein kompletter Erkennungsdurchlauf auf einem Kartenbild (CARD_W × CARD_H) */
+/** Erkennung mit Zeitlimit; hängt die Texterkennung, wird sie neu gestartet */
+async function recognizeSafe(cv){
+  if(ocrUses>=OCR_RECYCLE)await resetOCR();
+  let timer;
+  try{
+    return await Promise.race([recognize(cv),new Promise((_,rej)=>{timer=setTimeout(()=>rej(Object.assign(Error('timeout'),{timeout:true})),20000)})]);
+  }catch(e){
+    await resetOCR();
+    if(e.timeout)return [];      // nächster Durchlauf mit frischem Worker
+    throw e;
+  }finally{clearTimeout(timer)}
+}
 async function recognize(cardCanvas){
   const w=await loadOCR();
   const num=new Map(),add=(m,f=1)=>{for(const [id,s] of m)num.set(id,Math.max(num.get(id)||0,Math.min(1,s*f)))};
-  const read=async(region,h,bin,mode)=>(await w.recognize(enhance(cropRegion(cardCanvas,region,h),bin,mode))).data.text;
+  const read=async(region,h,bin,mode)=>{ocrUses++;return (await w.recognize(enhance(cropRegion(cardCanvas,region,h),bin,mode))).data.text};
   // 1) Nummernbereich oben rechts (unter dem Topps-Logo). Lokale Schwelle zuerst, Otsu als Ergänzung.
   await w.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789AOHGWENFLMYBT '});
   const NUM_ZONE=[.55,.04,.99,.30];
@@ -1258,7 +1460,7 @@ $('scanTorch').onclick=async()=>{
 /* ---------- Ablaufsteuerung ---------- */
 function setStatus(text,busy=false){const s=$('scanStatus');s.textContent=text;s.classList.toggle('busy',busy)}
 async function openScanner(mode={}){
-  scan.mode=mode;scan.results=[];scan.paused=false;scan.misses=0;scan.lastTop=null;scan.ignoreId=null;scan.lastCanvas=null;
+  scan.mode=mode;scan.results=[];scan.paused=false;scan.lastTop=null;scan.ignoreId=null;scan.lastCanvas=null;resetVotes();
   $('scanner').hidden=false;document.body.classList.add('scanner-open');document.body.style.overflow='hidden';
   const photoMode=!!mode.photoFor;
   $('scanTitle').textContent=photoMode?`Foto für #${mode.photoFor}`:'Karte scannen';
@@ -1295,42 +1497,65 @@ document.addEventListener('visibilitychange',()=>{
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('scanner').hidden&&!document.querySelector('dialog[open]'))closeScanner()});
 
 function scheduleCycle(ms){clearTimeout(scan.cycleTimer);if(scan.running&&!scan.paused)scan.cycleTimer=setTimeout(cycle,ms)}
+/**
+ * Jedes Kamerabild liefert Kandidaten. Statt zu verlangen, dass zwei Bilder
+ * direkt hintereinander dasselbe ergeben, werden Stimmen über die letzten
+ * Bilder gesammelt (ältere zählen weniger). Ein unscharfes Zwischenbild
+ * verwirft einen Treffer damit nicht mehr.
+ */
+function resetVotes(){scan.votes=new Map();scan.frameNo=0;scan.misses=0}
+function castVotes(res){
+  scan.frameNo++;
+  for(const [id,v] of scan.votes){v.acc*=.55;if(v.acc<1.5&&scan.frameNo-v.last>3)scan.votes.delete(id)}
+  for(const r of res){
+    let v=scan.votes.get(r.id);
+    if(!v){v={id:r.id,acc:0,numHits:0,nameHits:0,both:false,first:scan.frameNo,last:0};scan.votes.set(r.id,v)}
+    v.acc+=r.score;v.last=scan.frameNo;
+    if(r.num>=.6)v.numHits++;
+    if(r.name>=.4)v.nameHits++;
+    if(r.num>=.6&&r.name>=.4)v.both=true;
+  }
+  return [...scan.votes.values()].sort((x,y)=>y.acc-x.acc);
+}
 async function cycle(){
   if(!scan.running||scan.paused||scan.busy||$('scanner').hidden)return;
   if(document.activeElement===$('scanInput')&&$('scanInput').value.trim()){scheduleCycle(800);return}
   const cv=grabCard();if(!cv){scheduleCycle(500);return}
   scan.busy=true;
   try{
-    if(!scan.ocr)setStatus('Texterkennung wird geladen (einmalig) …',true);
-    const ranked=await recognize(cv);
+    if(!scan.ocr)setStatus('Texterkennung wird geladen …',true);
+    const ranked=await recognizeSafe(cv);
     if(!scan.running||scan.paused)return;
     // Gerade erfasste Karte liegt noch im Rahmen → auf die nächste warten
-    if(scan.ignoreId&&ranked[0]?.id===scan.ignoreId){setStatus('Erfasst ✓ – nächste Karte in den Rahmen',true);scheduleCycle(300);return}
-    if(scan.ignoreId&&!ranked.some(r=>r.id===scan.ignoreId))scan.ignoreId=null;
-    // Schwache Einzeltreffer (z. B. eine einzelne Ziffer ohne passenden Namen) nicht anzeigen
-    let res=ranked.filter(r=>r.id!==scan.ignoreId&&(r.score>=8||r.name>=.4));
-    if(res.length)res=res.filter((r,i)=>i===0||(r.score>=8&&res[0].score-r.score<6));
-    if(!res.length){
-      scan.misses++;scan.lastTop=null;
-      setStatus(scan.ignoreId?'Erfasst ✓ – nächste Karte in den Rahmen':scan.misses>2?'Nichts erkannt – Karte näher, ruhiger, ohne Spiegelung halten':'Suche Kartennummer …',true);
+    // Erst nach 3 Bildern ohne diese Karte gilt sie als entfernt (ein unscharfes Bild reicht nicht)
+    if(scan.ignoreId&&ranked.some(r=>r.id===scan.ignoreId))scan.ignoreGone=0;
+    else if(scan.ignoreId&&++scan.ignoreGone>=3)scan.ignoreId=null;
+    if(scan.ignoreId&&(ranked[0]?.id===scan.ignoreId||!ranked.length)){setStatus(count(scan.ignoreId)?'✓ – nächste Karte in den Rahmen':'Übersprungen – nächste Karte in den Rahmen',true);scheduleCycle(300);return}
+    // Schwache Einzeltreffer (z. B. eine einzelne Ziffer ohne passenden Namen) nicht werten
+    const res=ranked.filter(r=>r.id!==scan.ignoreId&&(r.score>=8||r.name>=.4));
+    if(res.length){scan.misses=0;scan.lastCanvas=cv}else scan.misses++;
+    const votes=castVotes(res);
+    const top=votes[0],second=votes[1];
+    if(!top){
+      setStatus(scan.ignoreId?'Erfasst ✓ – nächste Karte in den Rahmen':scan.misses>=4?'Nichts erkannt – Karte näher, ruhiger, ohne Spiegelung halten':'Suche Kartennummer …',true);
       scheduleCycle(250);return;
     }
-    scan.misses=0;
-    const top=res[0],second=res[1];
-    const strong=(top.num>=.8&&top.name>=.4)||(top.num>=.8&&scan.lastTop===top.id)||(top.name>=.9&&scan.lastTop===top.id&&(!second||top.score-second.score>=4));
-    const clear=!second||top.score-second.score>=4;
-    if(!(strong&&clear)&&scan.lastTop!==top.id){
-      // Erst bestätigen lassen: im nächsten Bild noch einmal lesen
-      scan.lastTop=top.id;setStatus(`Prüfe #${top.id} …`,true);scheduleCycle(100);return;
+    // „Sicher“ nur, wenn Nummer UND Name passen – oder bei Karten ohne hinterlegten Namen die Nummer mehrfach gelesen wurde.
+    // Nur die Nummer allein ergibt einen Vorschlag, den du bestätigst.
+    const nameless=!(cardName(CARD.get(top.id))||'').trim();
+    const strong=top.both||(top.nameHits>=1&&top.numHits>=1)||(nameless&&top.numHits>=2);
+    const clear=!second||top.acc>=second.acc*1.6;
+    const age=scan.frameNo-top.first;
+    if(!(strong&&clear)&&age<3){
+      setStatus(`Prüfe #${top.id} … Karte ruhig halten`,true);scheduleCycle(80);return;
     }
-    scan.lastCanvas=cv;
-    showResults(res.map(r=>({id:r.id,sure:r===top&&strong&&clear,reason:r.num&&r.name?'Nummer + Name':r.num?'Nummer':'Name'})));
+    // Entscheidung: sicher, oder nach mehreren Bildern als Vorschlag zeigen
+    const sure=strong&&clear;
+    const list=votes.filter((v,i)=>i===0||(!sure&&v.acc>=top.acc*.4)).slice(0,3);
+    showResults(list.map(v=>({id:v.id,sure:v===top&&sure,reason:v.numHits&&v.nameHits?'Nummer + Name':v.numHits?'Nummer':'Name'})));
     const c=CARD.get(top.id);
-    if(strong&&clear&&prefs.auto&&!count(top.id)){
-      await commitScan(top.id,true);
-      return;
-    }
-    setStatus(strong&&clear?`Erkannt: #${c.id} ${displayName(c)}`:'Mögliche Treffer – bitte prüfen');
+    if(sure&&prefs.auto&&!count(top.id)){await commitScan(top.id,true);return}
+    setStatus(sure?`Erkannt: #${c.id} ${displayName(c)}`:'Mögliche Treffer – bitte prüfen');
   }catch(err){
     console.warn(err);
     setStatus('Texterkennung nicht verfügbar (Internet?) – Nummer unten eingeben');
@@ -1344,12 +1569,13 @@ function showResults(list){
   renderScanResults();
 }
 function resumeScan(){
-  scan.paused=false;scan.results=[];scan.lastTop=null;
+  scan.paused=false;scan.results=[];scan.lastTop=null;resetVotes();
   $('scanStill').hidden=true;frame.classList.remove('found');$('scanResume').hidden=true;
   renderScanResults();
   if(scan.stream){scan.running=true;setStatus('Karte formatfüllend in den Rahmen halten',true);scheduleCycle(300)}
 }
-$('scanResume').onclick=resumeScan;
+// „Weiter scannen“ = diese Karte überspringen, bis sie aus dem Rahmen genommen wurde
+$('scanResume').onclick=()=>{const skip=scan.results[0]?.id;resumeScan();if(skip&&!$('scanInput').value.trim()){scan.ignoreId=skip;scan.ignoreGone=0}};
 
 function renderScanResults(){
   const box=$('scanResults');
@@ -1378,7 +1604,7 @@ async function commitScan(id,auto=false){
     catch(err){toast('Karte gezählt, Foto konnte nicht gespeichert werden')}
   }
   $('scanInput').value='';$('scanInputClear').hidden=true;
-  scan.ignoreId=id;scan.lastCanvas=null;
+  scan.ignoreId=id;scan.ignoreGone=0;scan.lastCanvas=null;
   setStatus(`${auto?'Automatisch ':''}hinzugefügt: #${c.id} ${displayName(c)}`);
   if(scan.stream)resumeScan();else{scan.results=[];renderScanResults()}
   if(scan.stream)setStatus(`✓ #${c.id} ${displayName(c)} – nächste Karte`,true);
@@ -1413,7 +1639,7 @@ $('scanFile').onchange=async e=>{
     scan.lastCanvas=cv;$('scanStill').src=cv.toDataURL('image/jpeg',.8);$('scanStill').hidden=false;
     if(scan.mode?.photoFor){setStatus('Bild geladen – „Foto übernehmen“ tippen');return}
     setStatus('Lese Karte …',true);
-    const ranked=await recognize(cv);
+    const ranked=await recognizeSafe(cv);
     if(ranked.length){showResults(ranked.map((r,i)=>({id:r.id,sure:i===0&&r.num>=.8&&r.name>=.4,reason:r.num&&r.name?'Nummer + Name':r.num?'Nummer':'Name'})));setStatus('Bitte Treffer prüfen')}
     else setStatus('Nichts erkannt – Nummer unten eingeben');
   }catch(err){setStatus('Bild konnte nicht gelesen werden – Nummer unten eingeben')}

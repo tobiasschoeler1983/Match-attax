@@ -1,1 +1,1 @@
-{"version":24,"release":"2026-11-21","changes":"Neues Layout, fixierte Suche mit Enter-Abhaken, Live-Scanner mit Kartenrahmen (Nummer + Name), Kartenfotos ersetzen Platzhalter"}
+{"version":26,"release":"2026-11-21","changes":"Scanner stabilisiert: Erkennung über mehrere Bilder, Texterkennung startet bei Bedarf neu, Randflächen werden ausgeblendet, Namensabgleich verbessert"}
